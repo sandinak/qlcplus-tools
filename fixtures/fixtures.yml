@@ -1,0 +1,40 @@
+---
+output_dir: ~/Library/Application Support/QLC+/Fixtures/
+
+default:
+  Creator:
+    Name: Q Light Controller Plus
+    Version: 4.12.2
+    Author: Branson Matheson
+
+defs:
+  - Manufacturer: PHS Chorus
+    Model: Step Row
+    Type: LED Bar (Pixels)
+    Colors: RGB
+    Heads: 64
+    Physical:
+      Bulb:
+        Type: LED
+        Lumens: 10
+        ColourTemperature: 0
+      Dimensions:
+        Weight: 80
+        Width: 10000 
+        Height: 203
+        Depth: 228
+      Lens:
+        Name: Other
+        DegreesMin: 180
+        DegreesMax: 180 
+      Focus:
+        Type: Fixed
+        PanMax: 0
+        TiltMax: 1
+      Layout: 
+        Width: 64
+        Height: 1
+      Technical: 
+        PowerConsumption: 0
+        DmxConnector: Other
+  
