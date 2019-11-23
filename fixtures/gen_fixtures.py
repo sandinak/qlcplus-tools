@@ -4,7 +4,11 @@
 ============================================================================
 Title: fixture_creator
 Description:
+<<<<<<< Updated upstream
 Generate fixtures with specific sets of configuration. 
+=======
+Tool to push all actions from a specific repo
+>>>>>>> Stashed changes
 ============================================================================
 '''
 # -*- coding: utf-8 -*-
