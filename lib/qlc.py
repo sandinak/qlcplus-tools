@@ -4,14 +4,14 @@
 ============================================================================
 Title: manage qlc showfile
 Description:
-create fixtures from basic config
+QLC Libraries
 ============================================================================
 '''
 
 import logging as log
-import lxml.etree as ET
-from xml.dom import minidom
+import xml.etree.ElementTree as ET
 import copy
+import pprint
 
 colormap = {
     'R': 'Red',
@@ -35,28 +35,33 @@ class qlc:
         # expand common targets
         self.__dict__.update(kwargs)
         self.colors = self.config.get('colors')
-        self._read_file()
-        
-        self.engine = self.xml.find('Engine')
-        self.fixtures = self.xml.find('Fixture')
-        self.fixture_groups = self.xml.find('FixtureGroup')
-        self.functions = self.xml.find('Function')
-        self.rgb_matrixes = self.functions.findall(
-            "Function[@Type='RGBMatrix']/Name")
+#         self._read_file()
+#         
+#         self.engine = self.xml.find('Engine')
+#         self.fixtures = self.xml.find('Fixture')
+#         self.fixture_groups = self.xml.find('FixtureGroup')
+#         self.functions = self.xml.find('Function')
+#         self.rgb_matrixes = self.functions.findall(
+#             "Function[@Type='RGBMatrix']/Name")
 
-    def _expand_rgb_matrix_per_group(self):
+class showfile(qlc): 
 
-class showfile: 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
         self._readfile()
         self._parsefile()
 
-    def _read_file(self):
-        self.xml = ET.parse(self.file)
+    def _readfile(self):
+        self.tree = ET.parse(self.file)
+        self.root = self.tree.getroot()
     
-    def _parse_file(self):
-        self.creator = self.xml.
+    def _parsefile(self):
+        for elem in self.root:
+            tag = elem.tag
+            if 'Creator' in tag: 
+                self.Creator = self._parse_engine(tag)
+            elif 'Engine' in tag:
+                self.engine = self._parse_engine(tag)
 
 
 
@@ -64,7 +69,7 @@ class showfile:
 class engine: 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        qlc.__init__(self, **kawargs)
+        qlc.__init__(self, **kwargs)
     
 class rgb_matrix: 
     def __init__(self, **kwargs):

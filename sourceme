@@ -1,0 +1,16 @@
+
+# source to setup shell
+
+export GIT_NAME=$(basename ${PWD})
+echo "activating $GIT_NAME"
+
+# activate virtualenv
+. venv/bin/activate
+
+# set prompt
+COLOR_PROMPT=${GIT_NAME}
+
+# extend path
+export PATH="${PATH}:{$PWD}/bin"
+
+

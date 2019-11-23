@@ -2,11 +2,9 @@
 
 '''
 ============================================================================
-Title: merge yaml to QLC xml 
+Title: fixture_creator
 Description:
- - read config
- - read in workspace file
- - extend matrixes that exist
+Generate fixtures with specific sets of configuration. 
 ============================================================================
 '''
 # -*- coding: utf-8 -*-
@@ -21,6 +19,7 @@ import sys
 import time
 
 import yaml
+from qlc_fixture import qlc_fixture
 
 # add the calling dir as a library dir so we
 # don't have to be in it to run
@@ -30,18 +29,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(
     os.path.dirname(
         os.path.dirname(
-            os.path.abspath(__file__))) + '/lib')
-import qlc
+        os.path.abspath(__file__) + '/lib')))
+
 
 DESC = '''
 This tool:
-  - reads showfile
   - reads yaml 
-  - updates showfile with config
+  - creates fixtures 
 '''
 
 # where the config is
-CF_FILE = './showfile.yml'
+CF_FILE = './fixtures.yml'
 
 
 def get_args():
@@ -59,14 +57,11 @@ def get_args():
                         help="Show debugging output.")
     parser.add_argument("-l", "--log", type=str,
                         help="log to file")
-    parser.add_argument("-cf", "--config-file",
+    parser.add_argument("-cf", "--config-file", 
                         type=str, default=CF_FILE,
                         help="config file with definitions")
-    parser.add_argument('showfile', metavar='S',
-                        type=str, nargs='?',
-                        help='Showfile to extend.')
     parser.add_argument("-f", "--force", action="store_true",
-                        help="overwrite existing showfile instead of creating.")
+                        help="overwrite existing files.")
 
     args = parser.parse_args()
     if args.help:
@@ -96,7 +91,7 @@ def setup_logging(args):
                             '%(asctime)s,%(msecs)d '
                             '%(name)s %(levelname)s '
                             '%(message)s'),
-
+                        
                         datefmt='%H:%M:%S',
                         level=loglevel)
     elif args.debug or args.verbose:
@@ -127,9 +122,10 @@ def main():
     setup_logging(args)
 
     config = read_config(args.config_file)
-
-    showfile = qlc.showfile(file=args.showfile)
-
+    
+    for fdef in config.get('defs'):
+        f = qlc_fixture(config=config, fdef=fdef)
+        print(f.text)
 
 if __name__ == '__main__':
     main()
