@@ -14,13 +14,12 @@ Description:
 from __future__ import print_function
 
 import argparse
-import logging as log
-import os
+import os, os.path, sys, time
 import pprint
-import sys
-import time
+from xml.etree import ElementTree as et
 
-import yaml
+et.register_namespace('','http://www.qlcplus.org/Workspace')
+
 
 # add the calling dir as a library dir so we
 # don't have to be in it to run
@@ -31,17 +30,59 @@ sys.path.append(
     os.path.dirname(
         os.path.dirname(
             os.path.abspath(__file__))) + '/lib')
-import qlc
 
 DESC = '''
 This tool:
-  - reads showfile
-  - reads yaml 
-  - updates showfile with config
+  - reads two showfiles and combines them
 '''
 
-# where the config is
-CF_FILE = './showfile.yml'
+# straight from Stack Overflow: http://tinyurl.com/rhlcrlp
+class hashabledict(dict):
+        def __hash__(self):
+            return hash(tuple(sorted(self.items())))
+
+
+class XMLCombiner(object):
+    def __init__(self, filenames):
+        assert len(filenames) > 0, 'No filenames!'
+        # save all the roots, in order, to be processed later
+        self.roots = [et.parse(f).getroot() for f in filenames]
+
+    def combine(self):
+        for r in self.roots[1:]:
+            # combine each element with the first one, and update that
+            self.combine_element(self.roots[0], r)
+        # return the string representation
+        return et.tostring(self.roots[0])
+
+    def combine_element(self, one, other):
+        """
+        This function recursively updates either the text or the children
+        of an element if another element is found in `one`, or adds it
+        from `other` if not found.
+        """
+        # Create a mapping from tag name to element, as that's what we are fltering with
+        mapping = {(el.tag, hashabledict(el.attrib)): el for el in one}
+        for el in other:
+            if len(el) == 0:
+                # Not nested
+                try:
+                    # Update the text
+                    mapping[(el.tag, hashabledict(el.attrib))].text = el.text
+                except KeyError:
+                    # An element with this name is not in the mapping
+                    mapping[(el.tag, hashabledict(el.attrib))] = el
+                    # Add it
+                    one.append(el)
+            else:
+                try:
+                    # Recursively process the element, and update it in the same way
+                    self.combine_element(mapping[(el.tag, hashabledict(el.attrib))], el)
+                except KeyError:
+                    # Not in the mapping
+                    mapping[(el.tag, hashabledict(el.attrib))] = el
+                    # Just add it
+                    one.append(el)
 
 
 def get_args():
@@ -49,74 +90,22 @@ def get_args():
     parser = argparse.ArgumentParser(
         description=DESC,
         formatter_class=argparse.RawTextHelpFormatter)
-    parser.set_defaults(debug=False)
-    parser.set_defaults(verbose=False)
     parser.set_defaults(help=False)
     parser.set_defaults(overwrite=False)
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Set verbose output.")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Show debugging output.")
-    parser.add_argument("-l", "--log", type=str,
-                        help="log to file")
-    parser.add_argument("-cf", "--config-file",
-                        type=str, default=CF_FILE,
-                        help="config file with definitions")
-    parser.add_argument('showfile', metavar='S',
-                        type=str, nargs='?',
-                        help='Showfile to extend.')
-    parser.add_argument("-f", "--force", action="store_true",
-                        help="overwrite existing showfile instead of creating.")
+    parser.add_argument("-o", "--output-file",
+                        type=str, default=None,
+                        help="Write to output file")
+    parser.add_argument("-F", "--overwrite", action="store_true",
+                        help="overwrite existing file")
+    parser.add_argument('showfiles', type=str, nargs='+',
+                        help='Showfiles to combine')
 
     args = parser.parse_args()
-    if args.help:
+    if len(args.showfiles) != 2 or args.help:
         parser.print_help()
         sys.exit(0)
 
-    if not (os.path.isfile(args.config_file) and
-            os.access(args.config_file, os.R_OK)):
-        print('config file %s is not readable.' %
-              args.config_file)
-        sys.exit(1)
-
     return args
-
-
-def setup_logging(args):
-    ''' setup logging, stdout if no file set '''
-    loglevel = log.INFO
-    if args.debug:
-        loglevel = log.DEBUG
-
-    if args.log:
-        # log to a file, default debug
-        log.basicConfig(filename=args.log,
-                        filemode='a',
-                        format=(
-                            '%(asctime)s,%(msecs)d '
-                            '%(name)s %(levelname)s '
-                            '%(message)s'),
-
-                        datefmt='%H:%M:%S',
-                        level=loglevel)
-    elif args.debug or args.verbose:
-        # log to screen
-        log.basicConfig(format="%(levelname)s: %(message)s",
-                        level=loglevel)
-    else:
-        # don't log
-        log.basicConfig(format="%(levelname)s: %(message)s")
-
-    log.debug("==== Starting %s =====", sys.argv[0])
-
-
-def read_config(cf_file):
-    ''' read the config file and return a dict '''
-    log.debug('reading config from %s', cf_file)
-    with open(cf_file, "r") as cf_yaml:
-        config = yaml.load(cf_yaml, Loader=yaml.FullLoader)
-    log.debug(pprint.pformat(config))
-    return config
 
 
 def main():
@@ -124,12 +113,18 @@ def main():
 
     # handle args
     args = get_args()
-    setup_logging(args)
 
-    config = read_config(args.config_file)
-
-    showfile = qlc.showfile(file=args.showfile)
-
+    txt = XMLCombiner((args.showfiles[0], args.showfiles[1])).combine()
+    if args.output_file:
+        if os.path.isfile(args.output_file) and not args.overwrite:
+            print('ERROR: file %s exists, use -F to overwrite.' % 
+                  args.outputfile)
+            sys.exit(1)
+        f = open(args.output_file, 'r')
+        f.write(txt)
+        f.close()
+    else:
+        print(txt)
 
 if __name__ == '__main__':
     main()

@@ -2,9 +2,9 @@
 
 '''
 ============================================================================
-Title: manage qlc fixtures
+Title: manage qlc scenes
 Description:
-create fixtures from basic config
+create scenes based on config
 ============================================================================
 '''
 
@@ -13,47 +13,7 @@ import lxml.etree as ET
 from xml.dom import minidom
 import copy
 
-colormap = {
-    'R': 'Red',
-    'G': 'Green',
-    'B': 'Blue',
-    'W': 'White'
-}
-
-def_to_fixture = [
-    'Manufacturer',
-    'Model',
-    'Type'
-]
-
-physical_order = [
-    'Bulb',
-    'Dimensions',
-    'Technical',
-    'Lens',
-    'Focus',
-    'Layout',
-    'Technical']
-
-ENCODING='UTF-8'
-XMLNS='http://www.qlcplus.org/FixtureDefinition'
-DOCTYPE='<!DOCTYPE FixtureDefinition>'
-
-def _gen_filename(fixture):
-    ''' generate filename in QLC format '''
-    manufacturer = fixture.get('Manufacturer').replace(' ', '_')
-    model = fixture.get('Model').replace(' ', '_')
-    return ('%s-%s' % (manufacturer, model))
-
-
-def _channel_name(head, color):
-    ''' create channel name '''
-    colorname = colormap[color]
-    return '%d-%s' % (head, colorname)
-
-
-class qlc_fixture:
-
+class qlc_functions:
     def __init__(self, **kwargs):
         ''' setup class '''
         self.__dict__.update(kwargs)
@@ -72,10 +32,6 @@ class qlc_fixture:
             xml_declaration=True,
             encoding=ENCODING,
             doctype=DOCTYPE)
- 
-        #self.text = minidom.parseString(self.xml_str).toprettyxml(
-        #    indent = ' ' ).encode(ENCODING)
-            
 
     def _set_default_modes(self):
         if 'Modes' not in self.fdef:
@@ -93,7 +49,7 @@ class qlc_fixture:
     def _gen_creator(self):
         ''' create creator header '''
         creator = ET.SubElement(self.xml, 'Creator')
-        for key,val in self.fdef.get('Creator').iteritems():
+        for key,val in self.fdef.get('Creator').items():
             item = ET.SubElement(creator, key)
             item.text = str(val)
 
@@ -112,7 +68,7 @@ class qlc_fixture:
         physical = ET.SubElement(self.xml, 'Physical')
         for key in physical_order:
             item = ET.SubElement(physical, key)
-            for dkey, dval in self.fdef['Physical'].get(key).iteritems():
+            for dkey, dval in self.fdef['Physical'].get(key).items():
                 item.set(dkey, str(dval))
 
     def _gen_by_type(self):
@@ -167,6 +123,6 @@ class qlc_fixture:
 
     def _merge_defaults(self):
         ''' merge defaults '''
-        for k, v in self.config.get('default').iteritems():
+        for k, v in self.config.get('default').items():
             if k not in self.fdef:
                 self.fdef[k] = copy.deepcopy(v) 

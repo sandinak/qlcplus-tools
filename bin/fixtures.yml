@@ -4,7 +4,7 @@ output_dir: ~/Library/Application Support/QLC+/Fixtures/
 default:
   Creator:
     Name: Q Light Controller Plus
-    Version: 4.12.2
+    Version: 4.12.3
     Author: Branson Matheson
 
 defs:

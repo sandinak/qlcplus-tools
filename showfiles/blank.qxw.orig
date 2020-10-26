@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Workspace>
+<Workspace xmlns="http://www.qlcplus.org/Workspace" CurrentWindow="FixtureManager">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>4.12.3</Version>
+  <Author>Branson Matheson</Author>
+ </Creator>
+ <Engine>
+  <InputOutputMap>
+   <Universe Name="Universe 1" ID="0"/>
+   <Universe Name="Universe 2" ID="1"/>
+   <Universe Name="Universe 3" ID="2"/>
+   <Universe Name="Universe 4" ID="3"/>
+  </InputOutputMap>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>0</ID>
+   <Name>T1-PS-1</Name>
+   <Universe>0</Universe>
+   <Address>0</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>1</ID>
+   <Name>T1-PS-2</Name>
+   <Universe>0</Universe>
+   <Address>9</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>2</ID>
+   <Name>T1-PS-3</Name>
+   <Universe>0</Universe>
+   <Address>18</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>3</ID>
+   <Name>T1-PS-4</Name>
+   <Universe>0</Universe>
+   <Address>27</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>4</ID>
+   <Name>T1-PS-5</Name>
+   <Universe>0</Universe>
+   <Address>36</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>Mini LED Moving Head</Model>
+   <Mode>9 Channel Mode</Mode>
+   <ID>5</ID>
+   <Name>T1-PS-6</Name>
+   <Universe>0</Universe>
+   <Address>45</Address>
+   <Channels>9</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>LED Movinghead+Circle</Model>
+   <Mode>12 Channel</Mode>
+   <ID>10</ID>
+   <Name>T1-CS #1</Name>
+   <Universe>0</Universe>
+   <Address>126</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>LED Movinghead+Circle</Model>
+   <Mode>12 Channel</Mode>
+   <ID>11</ID>
+   <Name>T1-CS #2</Name>
+   <Universe>0</Universe>
+   <Address>138</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>LED Movinghead+Circle</Model>
+   <Mode>12 Channel</Mode>
+   <ID>12</ID>
+   <Name>T1-CS #3</Name>
+   <Universe>0</Universe>
+   <Address>150</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Branson</Manufacturer>
+   <Model>LED Movinghead+Circle</Model>
+   <Mode>12 Channel</Mode>
+   <ID>13</ID>
+   <Name>T1-CS #4</Name>
+   <Universe>0</Universe>
+   <Address>162</Address>
+   <Channels>12</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>American DJ</Manufacturer>
+   <Model>Focus Spot Three Z</Model>
+   <Mode>18 Channel</Mode>
+   <ID>14</ID>
+   <Name>US-F-3z #1</Name>
+   <Universe>0</Universe>
+   <Address>54</Address>
+   <Channels>18</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>American DJ</Manufacturer>
+   <Model>Focus Spot Three Z</Model>
+   <Mode>18 Channel</Mode>
+   <ID>15</ID>
+   <Name>US-F-3z #2</Name>
+   <Universe>0</Universe>
+   <Address>72</Address>
+   <Channels>18</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>American DJ</Manufacturer>
+   <Model>Focus Spot Three Z</Model>
+   <Mode>18 Channel</Mode>
+   <ID>16</ID>
+   <Name>US-F-3z #3</Name>
+   <Universe>0</Universe>
+   <Address>90</Address>
+   <Channels>18</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>American DJ</Manufacturer>
+   <Model>Focus Spot Three Z</Model>
+   <Mode>18 Channel</Mode>
+   <ID>17</ID>
+   <Name>US-F-3z #4</Name>
+   <Universe>0</Universe>
+   <Address>108</Address>
+   <Channels>18</Channels>
+  </Fixture>
+  <FixtureGroup ID="0">
+   <Name>T1-PS-Outside</Name>
+   <Size X="2" Y="1"/>
+   <Head X="0" Y="0" Fixture="5">0</Head>
+   <Head X="1" Y="0" Fixture="0">0</Head>
+   <Head X="0" Y="3" Fixture="10">0</Head>
+   <Head X="1" Y="3" Fixture="11">0</Head>
+   <Head X="0" Y="4" Fixture="12">0</Head>
+   <Head X="1" Y="4" Fixture="13">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="1">
+   <Name>T1-PS-Middle</Name>
+   <Size X="2" Y="1"/>
+   <Head X="0" Y="0" Fixture="1">0</Head>
+   <Head X="1" Y="0" Fixture="4">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="2">
+   <Name>T1-PS-Inside</Name>
+   <Size X="2" Y="1"/>
+   <Head X="0" Y="0" Fixture="2">0</Head>
+   <Head X="1" Y="0" Fixture="3">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="3">
+   <Name>T1-CS</Name>
+   <Size X="2" Y="2"/>
+   <Head X="0" Y="0" Fixture="10">0</Head>
+   <Head X="1" Y="0" Fixture="11">0</Head>
+   <Head X="0" Y="1" Fixture="12">0</Head>
+   <Head X="1" Y="1" Fixture="13">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="4">
+   <Name>T1</Name>
+   <Size X="10" Y="1"/>
+   <Head X="0" Y="0" Fixture="0">0</Head>
+   <Head X="1" Y="0" Fixture="1">0</Head>
+   <Head X="2" Y="0" Fixture="2">0</Head>
+   <Head X="3" Y="0" Fixture="3">0</Head>
+   <Head X="4" Y="0" Fixture="4">0</Head>
+   <Head X="5" Y="0" Fixture="5">0</Head>
+   <Head X="6" Y="0" Fixture="10">0</Head>
+   <Head X="7" Y="0" Fixture="11">0</Head>
+   <Head X="8" Y="0" Fixture="12">0</Head>
+   <Head X="9" Y="0" Fixture="13">0</Head>
+  </FixtureGroup>
+  <FixtureGroup ID="5">
+   <Name>US-F-3z</Name>
+   <Size X="4" Y="1"/>
+   <Head X="0" Y="0" Fixture="14">0</Head>
+   <Head X="1" Y="0" Fixture="15">0</Head>
+   <Head X="2" Y="0" Fixture="16">0</Head>
+   <Head X="3" Y="0" Fixture="17">0</Head>
+  </FixtureGroup>
+  <Function ID="0" Type="Scene" Name="Test Scene" Path="Colors/T1-PS-Outside">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="3">3,0,4,0,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="1" Type="Scene" Name="Fixtures/T1-PS-Outside/Positions/Preset" Path="Fixtures/T1-PS-Outside/Positions">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">0,128,1,128</FixtureVal>
+   <FixtureVal ID="0">0,128,1,128</FixtureVal>
+  </Function>
+  <Function ID="2" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Red" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="3" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Green" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="4" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Blue" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="5" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Yellow" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="6" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Cyan" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="7" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Magenta" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="8" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Violet" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="9" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/All" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="10" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Rasp" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+  </Function>
+  <Function ID="11" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Orange" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="12" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Ocean" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="13" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Turqoise" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="14" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Purple" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="15" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Pink" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="16" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/White" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="17" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Red/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="18" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Green/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="19" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Blue/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="20" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Yellow/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="21" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Cyan/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="22" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Purple/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="23" Type="Scene" Name="Fixtures/T1-PS-Outside/Colors/Rasp/W" Path="Fixtures/T1-PS-Outside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="5">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="0">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="24" Type="Scene" Name="Fixtures/T1-PS-Middle/Positions/Preset" Path="Fixtures/T1-PS-Middle/Positions">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">0,128,1,128</FixtureVal>
+   <FixtureVal ID="4">0,128,1,128</FixtureVal>
+  </Function>
+  <Function ID="25" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Red" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="26" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Green" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="27" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Blue" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="28" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Yellow" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="29" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Cyan" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="30" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Magenta" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="31" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Violet" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="32" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/All" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="33" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Rasp" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+  </Function>
+  <Function ID="34" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Orange" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="35" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Ocean" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="36" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Turqoise" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="37" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Purple" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="38" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Pink" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="39" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/White" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="40" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Red/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="41" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Green/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="42" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Blue/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="43" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Yellow/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="44" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Cyan/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="45" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Purple/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="46" Type="Scene" Name="Fixtures/T1-PS-Middle/Colors/Rasp/W" Path="Fixtures/T1-PS-Middle/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="1">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="4">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="47" Type="Scene" Name="Fixtures/T1-PS-Inside/Positions/Preset" Path="Fixtures/T1-PS-Inside/Positions">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">0,128,1,128</FixtureVal>
+   <FixtureVal ID="3">0,128,1,128</FixtureVal>
+  </Function>
+  <Function ID="48" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Red" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="49" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Green" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="50" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Blue" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="51" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Yellow" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,255,5,0,6,0</FixtureVal>
+  </Function>
+  <Function ID="52" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Cyan" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,255,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="53" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Magenta" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="54" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Violet" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,128,4,0,5,255,6,0</FixtureVal>
+  </Function>
+  <Function ID="55" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/All" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="56" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Rasp" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,128,6,0</FixtureVal>
+  </Function>
+  <Function ID="57" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Orange" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,128,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="58" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Ocean" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,128,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="59" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Turqoise" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,255,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="60" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Purple" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="61" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Pink" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+  <Function ID="62" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/White" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,0,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="63" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Red/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="64" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Green/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="65" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Blue/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="66" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Yellow/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,255,5,0,6,255</FixtureVal>
+  </Function>
+  <Function ID="67" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Cyan/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,0,4,255,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="68" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Purple/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,128,4,0,5,255,6,255</FixtureVal>
+  </Function>
+  <Function ID="69" Type="Scene" Name="Fixtures/T1-PS-Inside/Colors/Rasp/W" Path="Fixtures/T1-PS-Inside/Colors">
+   <Speed FadeIn="0" FadeOut="0" Duration="0"/>
+   <FixtureVal ID="2">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+   <FixtureVal ID="3">2,255,3,255,4,0,5,128,6,255</FixtureVal>
+  </Function>
+ </Engine>
+ <VirtualConsole>
+  <Frame Caption="">
+   <Appearance>
+    <FrameStyle>None</FrameStyle>
+    <ForegroundColor>Default</ForegroundColor>
+    <BackgroundColor>Default</BackgroundColor>
+    <BackgroundImage>None</BackgroundImage>
+    <Font>Default</Font>
+   </Appearance>
+  </Frame>
+  <Properties>
+   <Size Width="1920" Height="1080"/>
+   <GrandMaster ChannelMode="Intensity" ValueMode="Reduce" SliderMode="Normal"/>
+  </Properties>
+ </VirtualConsole>
+ <SimpleDesk>
+  <Engine/>
+ </SimpleDesk>
+</Workspace>

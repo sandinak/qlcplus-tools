@@ -9,50 +9,27 @@ inputoutput:
       outputIP: 192.168.21.100
 
   #### steps
-  - name: DS1 
+  - name: DSR1-1
     plugin: ArtNet
     line: 3
     params:
       outputIP: 192.168.21.101
-  - name: DS2 
-    plugin: ArtNet
-    line: 3
-    params:
-      outputIP: 192.168.21.102
-  - name: DS3 
-    plugin: ArtNet
-    line: 3
-    params:
-      outputIP: 192.168.21.103
-  - name: DS4
-    plugin: ArtNet
-    line: 3
-    params:
-      outputIP: 192.168.21.104
-   - name: CS1 
+  - name: DSR1-2
     plugin: ArtNet
     line: 3
     params:
       outputIP: 192.168.21.101
-  - name: CS2 
+  - name: DSR1-3
     plugin: ArtNet
     line: 3
     params:
-      outputIP: 192.168.21.102
-  - name: CS3 
+      outputIP: 192.168.21.101
+  - name: DSR1-4
     plugin: ArtNet
     line: 3
     params:
-      outputIP: 192.168.21.103
-  - name: CS4
-    plugin: ArtNet
-    line: 3
-    params:
-      outputIP: 192.168.21.104
-    
-   
-   
-   
+      outputIP: 192.168.21.101
+
 
 colors:
   #           R     G     B     W
