@@ -6,6 +6,12 @@ Title: manage qlc showfile
 Description:
 QLC Libraries
 ============================================================================
+NOTES/TODO:
+- need to refine the searches to be attribute aware instead of defining them discretely.
+- need to setup add/delete for things (Functions, Heads, etc)
+- allow import of colors for creation?
+- handle 'light' colors for heads that dont' have a white LED
+- add 'preset' position creation for all fixtures. 
 '''
 
 import logging as log
@@ -18,6 +24,8 @@ import urllib.parse
 import re
 import os
 
+
+
 # colors 
 # http://www.webriti.com/wp-content/uploads/2012/01/rgb-color-wheel-lg.jpg
 # colors for white.
@@ -26,12 +34,12 @@ FIXTURE_PATHS = [
     '/Applications/QLC+.app/Contents/Resources/Fixtures',
     '~/Library/Application Support/QLC+/Fixtures' 
     ]
-rgbw = {        #shortname           R    G    B    W
+rgbw = {        #shortname               R    G    B    W
     'Red':      { 'n':'R',    'rgbw': [255,   0,   0,   0], },
-    'Green':    { 'n':'G',    'rgbw': [0,   255,   0,   0], },
-    'Blue':     { 'n':'B',    'rgbw': [0,     0, 255,   0], },
+    'Green':    { 'n':'G',    'rgbw': [  0, 255,   0,   0], },
+    'Blue':     { 'n':'B',    'rgbw': [  0,   0, 255,   0], },
     'Yellow':   { 'n':'Y',    'rgbw': [255, 255,   0,   0], },
-    'Cyan':     { 'n':'C',    'rgbw': [0,   255, 255,   0], },
+    'Cyan':     { 'n':'C',    'rgbw': [  0, 255, 255,   0], },
     'Magenta':  { 'n':'M',    'rgbw': [255,   0, 255,   0], },
     'Violet':   { 'n':'V',    'rgbw': [128,   0, 255,   0], },
     'All':      { 'n':'A',    'rgbw': [255, 255, 255, 255], },
@@ -58,17 +66,21 @@ rgbw = {        #shortname           R    G    B    W
     'Purple':   { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
     'Pink':     { 'n':'PkW',  'rgbw': [255,   0, 128, 255], },
 }
+# because names are such random things
+RGB_ALTERNATES = {
+    'Cyan': 'Light Blue'
+}
 
 SPOT_ON_CHANNELS = [
     'Master Dimmer',
     'Strobe/Shutter',
     'Shutter',
     'Dimmer',
-    'Itensity',
+    'Intensity',
     'Shutter',
 ]
 
-Movement_Channel_Names = [
+MOVEMENT_CHANNEL_NAMES = [
     'Pan',
     'Level',
     'Horizontal',
@@ -76,7 +88,23 @@ Movement_Channel_Names = [
     'Vertical'
 ]
 
-blank = '''
+def match(items,item):
+    for i in items:
+        if i == item:
+            return i
+
+def _strip(elem):
+    for elem in elem.iter():
+        if(elem.text):
+            elem.text = elem.text.strip()
+        if(elem.tail):
+            elem.tail = elem.tail.strip()
+
+def intersection(lst1, lst2): 
+    return list(set(lst1) & set(lst2))
+
+
+BLANK_WORKSPACE = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Workspace>
 <Workspace xmlns="http://www.qlcplus.org/Workspace" CurrentWindow="FixtureManager">
@@ -115,312 +143,211 @@ blank = '''
 EOF
 '''.strip()
 
-
 ENCODING = 'UTF-8'
-XMLNS = 'http://www.qlcplus.org/Workspace'
 DOCTYPE='''
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Workspace>
 '''.strip()
 
-
-def _strip(elem):
-    for elem in elem.iter():
-        if(elem.text):
-            elem.text = elem.text.strip()
-        if(elem.tail):
-            elem.tail = elem.tail.strip()
+class QLC():
+    def __init__(self, file=None):
+        ''' setup a working QLC space '''
+        self.fixture_definitions = FixtureDefinitions(FIXTURE_PATHS)
+        self.workspace = Workspace(file)
 
 
-class qlc:
-
-    def __init__(self, **kwargs):
-        ''' setup class '''
-        # expand common targets
-        self.__dict__.update(kwargs)
-
-        ET.register_namespace('', XMLNS)
-
-        if self.file:
-            self.tree = ET.parse(self.file)
-            self.root = self.tree.getroot()
-        else:
-            self.root = ET.fromstring(blank)
-
-        self.fixture_definitions = {}
-        self.load_fixtures(FIXTURE_PATHS)
-
-        # extract useful objects
-        self.creator = self.root.find('{%s}Creator' % XMLNS)
-        self.engine = self.root.find('{%s}Engine' % XMLNS)
-        self.iomap = self.engine.find('{%s}InputOutputMap' % XMLNS)
-        self.universes = self.iomap.findall('{%s}Universe' % XMLNS)
-
-        self.fixtures = self.engine.findall('{%s}Fixture' % XMLNS)
-        self.fixture_groups = self.engine.findall('{%s}FixtureGroup' % XMLNS)
-        self.fg_id_by_name = {}
-
-        self.text = None
-
-        # cache these
-        self.last_function_id = 0
-        self.functions = self.engine.findall('{%s}Function' % XMLNS)
-        for f in self.functions:
-            _id = f.attrib.get('ID')
-            if int(_id) > self.last_function_id:
-                self.last_function_id = int(_id)
-
-    def load_fixtures(self, paths):
-        ''' load all the fixtures we can find. ordered by 
-            manufacturer .. and then model.  We're only loading
-            colors right now so we can expand them in scenes. '''
-        fixtures = {}
-        for path in paths:
-            self.read_fixture_dir(path)
-
-    def read_fixture_dir(self, path):
-        ''' read a directory of fixtures '''
-        realpath = os.path.expanduser(path)
-        entries = os.scandir(realpath)
-        for entry in entries:
-            t_path = f'{realpath}/{entry.name}'
-            if os.path.isdir(entry):
-                self.read_fixture_dir(t_path)
-                continue
-            elif entry.name.startswith('.'):
-                continue
-            elif '.qxf' in entry.name:
-                self.read_fixture(t_path)
-    
-    def read_fixture(self,path):
-        xmlns = 'http://www.qlcplus.org/FixtureDefinition'
-        # read/parse the file
-        try: 
-            tree = ET.parse(path)
-        except Exception as e:
-            return
-        fixture = tree.getroot()
-        f = {}
-        f['manufacturer'] = fixture.find('{%s}Manufacturer' % xmlns).text
-        f['model'] = fixture.find('{%s}Model' % xmlns).text
-        f['type'] = fixture.find('{%s}Type' % xmlns).text
-
-        # skip pixels .. we're not dealing with those
-        if 'Bar' in f['type'] or 'Pixel' in f['type']:
-            return
-
-        # get the modes, we'll need these for the colors
-        f['modes'] = {}
-        f['groups'] = {}
-        f_modes = fixture.findall('{%s}Mode' % xmlns)
-        for f_mode in f_modes:
-            name = f_mode.get('Name')
-            #print('mode name %s' % name)
-            fmc = {}
-            mode_channels = f_mode.findall('{%s}Channel' % xmlns)
-            for mc in mode_channels:
-                attr = mc.text
-                cid = int(mc.get('Number'))
-                fmc[cid] = attr
-            f['modes'][name] = fmc
-
-        # if no mode, create a default mode
-        if len(f['modes']) == 0:
-            f['modes']['Default'] = {}
-
-        # if we need colors for a spot .. lets see if they're
-        # defined, also if not a mode, we generate one using the
-        # existing channels
-        f_channels = fixture.findall('{%s}Channel' % xmlns)
-        dfmc = {}
-        cid = 0
-        for fc in f_channels:
-            fc_name = fc.get('Name')
-            fc_group_entry = fc.find('{%s}Group' % xmlns)
-            if fc_group_entry == None:
+    def expand_fixture_group_capabilities(self):
+        for fg in self.workspace.engine.fixture_groups:
+            if len(fg.heads.items) == 0:
                 continue
 
-            # add channel to the groups list
-            fc_group = fc_group_entry.text
-            f['groups'][fc_name] = fc_group
+            self.generate_color_scenes(fg)
+            self.generate_capability_scenes(fg)
 
-            # add to default mode if it exists
-            if 'Default' in f['modes']: 
-                name = fc.get('Name')
-                f['modes']['Default'][name] = id
-                cid += 1
+    def generate_color_scenes(self, fg):
+        ''' this is now fixture independent... which means that groups
+            can have more than one fixture type and it will try still do the 
+            right thing finding the intersections of colors across all the 
+            fixtures '''
+        Type = 'Scene' 
+        Path = '/'.join(['Fixture',fg.name,'Colors'])
+        for color_name, color_data in rgbw.items():  
+            Name = '/'.join([Path, color_name])
+            # generate fval by head
+            fvals = {}
+            for head in fg.heads: 
+                # get fixture 
+                fixture = self.workspace.engine.fixtures.find_by_id(head.fixture_id)
+                definition = self.fixture_definitions.find_by_fixture(fixture)
+                # we sort here to get them in numerical order
+                mode_channels = definition.modes.find_by_name(fixture.mode).mode_channels
 
-            # add color capabilities ... .EU spelling
-            if fc_group == 'Colour':
-                f[fc_name] = {}
-                color_capabilities = fc.findall('{%s}Capability' % xmlns)
-                for cc in color_capabilities:
-                    name = cc.text
-                    val = str(int(cc.get('Min')) + 1)
-                    f[fc_name][name] = val
+                fval = []
+                if 'Red' in mode_channels.names:
+                    # this is an RGB Head
+                    red, green, blue, white = color_data.get('rgbw')
+                    for mc in mode_channels:
+                        mc_num = mc.number 
+                        mc_name = mc.name 
+                        if 'Intensity' in mc_name:
+                            fval.append(f'{mc_num},255')
+                        elif 'Red' in mc_name:
+                            fval.append(f'{mc_num},{red}')
+                        elif 'Green' in mc_name:
+                            fval.append(f'{mc_num},{green}')
+                        elif 'Blue' in mc_name:
+                            fval.append(f'{mc_num},{blue}')
+                        elif 'White' in mc_name:
+                            fval.append(f'{mc_num},{white}')
 
-            # add other capabilities by group
-            elif 'Gobo' in fc_group:
-                f[fc_name] = {}
-                capabilities = fc.findall('{%s}Capability' % xmlns)
-                for c in capabilities:
-                    name = c.text
-                    val = str(int(c.get('Min')))
-                    f[fc_name][name] = val
+                elif color_channels := intersection(mode_channels.names, ['Colour','Color']):
+                    # this is a color wheel head
+                    channel = definition.channels.find_by_name(color_channels[0])
+                    # see if we can match to a predefined color
+                    if color_name in RGB_ALTERNATES:
+                        color_name = RGB_ALTERNATES[color_name]
+                    if capability := channel.capabilities.find_by_name(color_name):
+                        cval = capability.min
+                        for mc in mode_channels.items:
+                            if mc.name in SPOT_ON_CHANNELS:
+                                fval.append(f'{mc.number},255')
+                            elif mc.name == channel.name:
+                                fval.append(f'{mc.number},{cval}')
 
-            # add capabilties by name
-            elif 'Auto Focus' in fc_name or 'Prism' in fc_name:
-                f[fc_name] = {}
-                capabilities = fc.findall('{%s}Capability' % xmlns)
-                for c in capabilities:
-                    name = c.text
-                    val = str(int(c.get('Min')))
-                    f[fc_name][name] = val
-                    
+                # assemble the fvals for this head
+                if len(fval) > 0:
+                    fvals[fixture.id] = ','.join(fval)
 
-        # apply
-        # print('Creating: %s, %s' % (f['manufacturer'],f['model']))
-        if not f['manufacturer'] in self.fixture_definitions:
-            self.fixture_definitions[f['manufacturer']] = {}
-        self.fixture_definitions[f['manufacturer']][f['model']] = f
-    
-    def _gen_text(self):
-        _strip(self.root)
-        rough_bytes = ET.tostring(self.root) #, 'utf-8')
-        # fix DOCTYPE
-        reparsed = minidom.parseString(rough_bytes)
-        xml = reparsed.toprettyxml(indent=' ')
-        xml = xml.replace('<?xml version="1.0" ?>', DOCTYPE)
-        return xml
+            # create the scene if all heads in the group are accounted for 
+            if len(fg.heads.items) == len(fvals):
+                self.function(
+                    Type = Type,
+                    Path = Path,
+                    Name = Name,
+                    FixtureVals = fvals)
+
+    def generate_capability_scenes(self, fg):
+        ''' take each expandable channel and make scenes for the capabilities
+            NOTE: this one does NOT work across heads.. so is only gonna work when the 
+            heads are all the same. '''
+
+        # first lets determine if this FG has all the same definition and mode
+        fixture_definition = None
+        mode = None
+        for head in fg.heads:
+            # identify this fixture.
+            fixture = self.workspace.engine.fixtures.find_by_id(head.fixture)
+
+            # get the definition and determine if it matches
+            d = self.fixture_definitions.find_by_fixture(fixture)
+            if d == None:
+                return
+            elif ( fixture_definition == None ):
+                fixture_definition = d
+            elif ( fixture_definition != d ):
+                return
+
+            if fixture_definition:
+                m = fixture_definition.modes.find_by_name(fixture.mode)
+            if ( mode == None ): 
+                mode = m
+            elif (mode != m):
+                return
+        
+        # now get the channels to expand for this fixture mode. 
+        # we identify the right ones by the channel groups we support.
+        for mode_channel in mode.mode_channels:
+
+            # get the corresponding channel configuration for this mode_channel
+            channel = fixture_definition.channels.find_by_name(mode_channel.name)
 
 
-    def dump(self):
-        self.text = self._gen_text()
-        print(self.text)
+            # if more than 1 capability that's not the color .. expand
+            if mode_channel.name == 'Color' or len(channel.capabilities.items) == 1:
+                continue
 
-    def write(self):
-        self.text = self._gen_text()
-        f = open(self.file, 'w')
-        f.write(self.text)
-        f.close()
+            Path = '/'.join(['Fixture', fg.name, channel.name])
 
-    def universe(self, **kwargs):
-        last_u_id = 0
-        this_u = None
-        for u in self.universes:
-            _id = int(u.get('ID'))
-            print("_id: %d , id: %d" % (_id, kwargs.get('ID')))
-            if _id == kwargs.get('ID'):
-                this_u = u
-            if _id > last_u_id:
-                last_u_id = _id
+            # get capabilities for this channel
+            for capability in channel.capabilities:
 
-        # create a new U if needed
-        if this_u == None:
-            this_u = ET.SubElement(self.iomap, 'Universe')
-            last_u_id += 1
-            this_u.set('ID', str(last_u_id))
+                # set the scene name and capability value
+                Name = '/'.join([Path, capability.name ])
 
-        # set the name to match
-        this_u.set('Name', kwargs.get('Name'))
+                # generate fvals for this capability on this channel
+                fvals = {}
+                for head in fg.heads:
+                    fval = []
+                    for mc in mode.mode_channels:
+                        if channel.name in mc.name:
+                            fval.append(f'{mc.number},{capability.min}')
+                    fvals[head.fixture] = ','.join(fval)
+                
+                # generate scene
+                self.function(
+                    Type = 'Scene',
+                    Path = Path,
+                    Name = Name,
+                    FixtureVals = fvals)
 
-        # update it if we have new data
-        if Input := kwargs.get('Input'):
-            i = this_u.find('{%s}Input' % XMLNS)
-            if not i:
-                i = ET.SubElement(this_u, 'Input')
-            for k, v in Input.items():
-                i.set(k, v)
-
-        if InputParams := kwargs.get('InputParams'):
-            ip = i.find('{%s}PluginParameters' % XMLNS)
-            if not ip:
-                ip = ET.SubElement(i, 'PluginParameters')
-            for k, v in InputParams.items():
-                ip.set(k, v)
-
-        if Output := kwargs.get('Output'):
-            o = this_u.find('{%s}Input' % XMLNS)
-            if not o:
-                o = ET.SubElement(this_u, 'Input')
-            for k, v in Output.items():
-                o.set(k, v)
-
-        if OutputParams := kwargs.get('OutputParams'):
-            op = o.find('{%s}PluginParameters' % XMLNS)
-            if not op:
-                op = ET.SubElement(o, 'PluginParameters')
-            for k, v in OutputParams.items():
-                op.set(k, v)
-
-    def fattr_speed(self,f,**kwargs):
-        default_speed = {
-            'FadeIn': '0',
-            'FadeOout': '0',
-            'Duration': '0'
-        } 
-        if speed := kwargs.get('Speed') or default_speed:
-            s = f.find('{%s}Speed' % XMLNS)
-            if s == None:
-                s = ET.SubElement(f, 'Speed')
-            for k, v in speed.items():
-                s.set(k, v)
-
+    # TODO: extrapolate this into the actual classes 
     def function(self, **kwargs):
+        functions = self.workspace.engine.functions
+        
         Name = kwargs.get('Name')
-        ID = kwargs.get('ID')
+        ID = kwargs.get('ID') 
         Type = kwargs.get('Type')
         Path = kwargs.get('Path')
 
         # go find if we can, ID is most significant
-        this_func = None
-        if Name and Type:
-            for f in self.functions:
-                if ID == f.attrib.get('ID'):
-                    this_func = f
-                elif Name == f.attrib.get('Name'):
-                    this_func = f
+        func = None
+        if ID:
+            func = functions.find_by_id(ID)
+        if not func and Name: 
+            func = functions.find_by_name(Name)
 
-        # if we dont' find it .. create it
-        if not this_func:
-            this_func = ET.SubElement(self.engine, 'Function')
-             # select next id 
-            if not ID:
-                self.last_function_id +=1
-                ID = self.last_function_id
-            this_func.set('ID', str(ID))
+        # if not create root element
+        if not func:
+            this_func = ET.SubElement(functions.root, "Function")
+            ID = str(functions.next_id())
+            this_func.set('ID', ID)
+        else:
+            ID = func.id
+            this_func = func.root
 
-        # set primatives
+        # set/update primatives
         this_func.set('Name', Name)
         this_func.set('Type', Type)
+
+        # optional
         if Path:
            this_func.set('Path', Path)
 
         if Type == 'Script':
             self.f_script(this_func, **kwargs)
         elif Type == 'Scene': 
+            fvals = kwargs.get('FixtureVals')
             self.f_scene(this_func, **kwargs)
 
     def f_script(self, f, **kwargs):
         
         self.fattr_speed(f, **kwargs)
-
         default_direction = 'Forward'
         if direction := kwargs.get('Direction') or default_direction:
-            d = f.find('{%s}Direction' % XMLNS)
+            d = f.find('{%s}Direction' % Workspace.xmlns)
             if d == None:
                 d = ET.SubElement(f, 'Direction')
             d.text = direction
 
         default_runorder = 'Loop'
         if runorder := kwargs.get('RunOrder') or default_runorder:
-            r = f.find('{%s}RunOrder' % XMLNS)
+            r = f.find('{%s}RunOrder' % Workspace.xmlns)
             if r == None:
                 r = ET.SubElement(f, 'RunOrder')
             r.text = runorder
 
         if kwargs.get('Command'):
-            c = f.find('{%s}Command' % XMLNS)
+            c = f.find('{%s}Command' % Workspace.xmlns)
             if c == None:
                 c = ET.SubElement(f, 'Command')
             command = urllib.parse.quote(kwargs.get('Command'), safe='')
@@ -432,7 +359,7 @@ class qlc:
         self.fattr_speed(f, **kwargs)
 
         # set fixture vals
-        fvs = f.findall('{%s}FixtureVal' % XMLNS)
+        fvs = f.findall('{%s}FixtureVal' % Workspace.xmlns)
         existing_fv_ids = []
         for fv in fvs:
             fid = fv.get('ID')
@@ -449,163 +376,471 @@ class qlc:
             if fid not in existing_fv_ids:
                 this_fv = ET.SubElement(f,'FixtureVal')
                 this_fv.set('ID', fid)
-                this_fv.text = cstr
+                this_fv.text = cstr        
 
-   
-    def fixture_group_names(self):
-        r = []
-        for fg in self.fixture_groups:
-            name = fg.find('{%s}Name').text 
-            r.append(name)
-            self.fg_id_by_name[name] = fg.get('ID')
-        return r
+
+    def fattr_speed(self,f,**kwargs):
+        default_speed = {
+            'FadeIn': '0',
+            'FadeOout': '0',
+            'Duration': '0'
+        } 
+        if speed := kwargs.get('Speed') or default_speed:
+            s = f.find('{%s}Speed' % Workspace.xmlns)
+            if s == None:
+                s = ET.SubElement(f, 'Speed')
+            for k, v in speed.items():
+                s.set(k, v)
+
     
-    def expand_fixture_group_capabilities(self):
-        for fg in self.fixture_groups:
-            # get fixture id from the first head
-            fg_name = fg.find('{%s}Name' % XMLNS).text
-            heads = fg.findall('{%s}Head' % XMLNS)
-            if len(heads) == 0 :
+class Workspace(QLC):
+    xmlns = 'http://www.qlcplus.org/Workspace'
+    def __init__(self, file):
+        ''' setup class '''
+        # expand common targets
+        ET.register_namespace('', self.xmlns)
+
+        self.file = file
+
+        if self.file:
+            self.tree = ET.parse(self.file)
+            self.root = self.tree.getroot()
+        else:
+            self.root = ET.fromstring(BLANK_WORKSPACE)
+        
+        self.creator = Creator(self.root)
+        self.engine = Engine(self.root)
+   
+    def _gen_text(self):
+        _strip(self.root)
+        rough_bytes = ET.tostring(self.root) #, 'utf-8')
+        # fix DOCTYPE
+        reparsed = minidom.parseString(rough_bytes)
+        xml = reparsed.toprettyxml(indent=' ')
+        xml = xml.replace('<?xml version="1.0" ?>', DOCTYPE)
+        return xml
+    
+    def dump(self):
+        self.text = self._gen_text()
+        print(self.text)
+
+    def write(self, file=None):
+        out = file or self.file
+        self.text = self._gen_text()
+        f = open(out, 'w')
+        f.write(self.text)
+        f.close()
+
+class Creator(Workspace):
+    def __init__(self, root):
+        self.root = root.find('{%s}%s' % (Workspace.xmlns, type(self).__name__))
+        self.name = self.root.find('{%s}Name' % Workspace.xmlns).text
+        self.version = self.root.find('{%s}Version' % Workspace.xmlns).text
+        self.author = self.root.find('{%s}Author' % Workspace.xmlns).text
+
+class Engine(Workspace):
+    def __init__(self, root):
+        self.root = root.find('{%s}%s' % (Workspace.xmlns, type(self).__name__))
+        self.inputoutputmap =  InputOutputMap(self.root)
+        self.fixtures = Fixtures(self.root)
+        self.fixture_groups = FixtureGroups(self.root)
+        self.functions = Functions(self.root)
+
+class InputOutputMap(Engine):
+    def __init__(self, root):
+        self.root = root.find('{%s}%s' % (Workspace.xmlns, type(self).__name__))
+        self.universes = Universes(self.root)
+
+class Universes(InputOutputMap):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}Universe' % Workspace.xmlns):
+            self.items.append(Universe(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+        
+    def find_by_id(self, fid):
+        for i in self.items:
+            if i.id == fid:
+                return i
+    
+    def last_id(self):
+        r = 0
+        for item in self.items:
+            if int(item.id) > r:
+                r = int(item.i)
+        return r
+
+    def __iter__(self):
+        return iter(self.items)
+
+class Universe(Universes):
+    def __init__(self,root):
+        self.name = root.get('Name')
+        if root.find('{%s}Input'):
+            self.input = Input(root)
+        if root.find('{%s}Output'):
+            self.output = Output(root)
+
+class Input(Universe):
+    def __init__(self,root):
+        self.root = root.find('{%s}Input')
+        self.plugin = self.root.get('Plugin')
+        self.line = self.root.get('Line')
+
+class Output(Universe):
+    def __init__(self,root):
+        self.root = root.find('{%s}Input')
+        self.plugin = self.root.get('Plugin')
+        self.line = self.root.get('Line')
+    
+class Fixtures(Engine):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}Fixture' % Workspace.xmlns):
+            self.items.append(Fixture(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+        
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+        
+    def find_by_id(self, fid):
+        for i in self.items:
+            if i.id == fid:
+                return i
+        
+    def __iter__(self):
+        return iter(self.items)
+    
+
+class Fixture(Fixtures):
+    def __init__(self, root):
+        self.manufacturer = root.find('{%s}Manufacturer' % Workspace.xmlns).text
+        self.model = root.find('{%s}Model' % Workspace.xmlns).text
+        self.mode = root.find('{%s}Mode' % Workspace.xmlns).text
+        self.id = root.find('{%s}ID' % Workspace.xmlns).text
+        self.name = root.find('{%s}Name' % Workspace.xmlns).text
+        self.universe = root.find('{%s}Universe' % Workspace.xmlns).text
+        self.address = root.find('{%s}Address' % Workspace.xmlns).text
+        self.channels = root.find('{%s}Channels' % Workspace.xmlns).text
+    
+
+class FixtureGroups(Engine):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}FixtureGroup' % Workspace.xmlns):
+            self.items.append(FixtureGroup(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+            
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+        
+    def find_by_id(self, fid):
+        for i in self.items:
+            if i.id == fid:
+                return i
+
+    def __iter__(self):
+        return iter(self.items)
+    
+ 
+class FixtureGroup(FixtureGroups):
+    def __init__(self, root):
+        self.name = root.find('{%s}Name' % Workspace.xmlns).text
+        self.id = root.get('ID')
+        self.size = Size(root)
+        self.heads = Heads(root)
+    
+
+class Size(FixtureGroup):
+    def __init__(self, root):
+        self.root = root.find('{%s}Size' % Workspace.xmlns)
+        self.x = self.root.get('X')
+        self.y = self.root.get('y')
+
+
+class Heads(FixtureGroup):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}Head' % Workspace.xmlns):
+            self.items.append(Head(item))
+
+class Head(Heads):
+    def __init__(self, root):
+        self.x = root.get('X')
+        self.y = root.get('Y')
+        self.fixture = root.get('Fixture')
+        self.fixture_id = root.get('Fixture')
+
+class Functions(Engine):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}Function' % Workspace.xmlns):
+            self.items.append(Function(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+
+        self.last_id = 0
+        for item in self.items:
+            if int(item.id) > self.last_id:
+                self.last_id = int(item.id)
+
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+
+    def find_by_path(self, path):
+        for i in self.items:
+            if i.path == path:
+                return i
+
+    def find_by_id(self, id):
+        for i in self.items:
+            if i.id == id:
+                return i
+    
+    def next_id(self):
+        self.last_id += 1
+        return self.last_id
+
+    def __iter__(self):
+        return iter(self.items) 
+
+class Function(Functions):
+    def __init__(self, root):
+        self.root = root
+        self.id = root.get('ID')
+        self.type = root.get('Type')
+        self.name = root.get('Name')
+        self.path = root.get('Path')
+        self.speed = Speed(root)
+        if 'Scene' in  self.type:
+            self.config = Scene(root)
+
+class Scene(Function):
+    def __init__(self, root):
+        self.fixture_vals = FixtureVals(root)
+        self.speed = Speed(root)
+
+class FixtureVals(Scene):
+    def __init__(self,root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}FixtureVal' % Workspace.xmlns):
+            self.items.append(FixtureVal(item))
+
+    def __iter__(self):
+        return iter(self.items) 
+        
+class FixtureVal(FixtureVals):
+    def __init__(self, root):
+        self.id = root.get('ID')
+        self.data = root.text
+
+class Speed(Function):
+    def __init__(self, root):
+        self.root = root.find('{%s}Speed' % Workspace.xmlns)
+        if self.root: 
+            self.fadein = self.root.get('FadeIn') 
+            self.fadeout = self.root.get('FadeOut') 
+            self.duration = self.root.get('Duration')
+        else: 
+            self.fadein = '0'
+            self.fadeout = '0'
+            self.duration = '0'
+
+class FixtureDefinitions(QLC):
+    def __init__(self, paths):
+        self.paths = paths
+        self.items = dict()
+        for path in paths:
+            self.read_fixture_dir(path)
+    
+    def read_fixture_dir(self,path):
+        realpath = os.path.expanduser(path)
+        entries = os.scandir(realpath)
+        for entry in entries:
+            t_path = f'{realpath}/{entry.name}'
+            if os.path.isdir(entry):
+                self.read_fixture_dir(t_path)
                 continue
-            rfid = heads[0].get('Fixture')
-            
-            # now find the fixture
-            for f in self.fixtures:
-                if f.find('{%s}ID' % XMLNS).text == rfid:
-                    rf = f
-                    break
-            
-            # get fixture color capabiltiies, first head works
-            rf_manufacturer = rf.find('{%s}Manufacturer' % XMLNS).text
-            rf_model = rf.find('{%s}Model' % XMLNS).text
-            rf_mode = rf.find('{%s}Mode' % XMLNS).text
-            if rf_mode == None:
-                rf_mode = 'Default'
+            elif entry.name.startswith('.'):
+                continue
+            elif '.qxf' in entry.name:
+                fd = FixtureDefinition(entry)
+                if manufacturer := fd.manufacturer:
+                    model = fd.model
+                else:
+                    continue
+                if not manufacturer in self.items:
+                    self.items[manufacturer] = {}
+                self.items[manufacturer][model] = fd
 
-            # get the dict of fixture channels
-            fchannels = self.fixture_definitions[rf_manufacturer][rf_model]['modes'][rf_mode]
+    def find_by_manufacturer_model(self, manufacturer, model):
+        if ( manufacturer in self.items and model in self.items[manufacturer] ):
+            return self.items[manufacturer][model]
 
-            # get a list of fixture_channel_groups
-            fc_groups = self.fixture_definitions[rf_manufacturer][rf_model]['groups']
+    def find_by_fixture(self, fixture):
+        return self.find_by_manufacturer_model(fixture.manufacturer, fixture.model)
 
-            print('name: %s == %s' % (fg_name, fchannels) )
-            for cid,fc in fchannels.items():
-                print('channel: %s groups: %s' % (fc, fc_groups))
-                if fc in fc_groups: 
-                    fc_group = fc_groups[fc]
-                if 'Gobo' in fc or 'Auto Focus' in fc or 'Prism' in fc:
-                    fvals = {}
-                    for cname, cval in self.fixture_definitions[rf_manufacturer][rf_model][fc].items():
-                        # skip rotation 
-                        if 'Rotate' in cname: 
-                            continue
-                        for head in heads: 
-                            hfid = head.get('Fixture')
-                            cid = 0
-                            cstr_l = []
-                            for cid,c in sorted(fchannels.items()):
-                                fval = None
-                                if fc == c:
-                                    fval = '%d,%d' % (cid, int(cval))
-                                cid += 1
-                                if fval: 
-                                    cstr_l.append(fval)
-                            fval = "," . join(cstr_l)
-                            fvals[hfid] = fval
-                        self.function(
-                            Type = 'Scene',
-                            Path = 'Fixtures/%s/%s' % ( fg_name, fc ),
-                            Name = 'Fixtures/%s/%s/%s' % ( fg_name, fc, cname ),
-                            FixtureVals = fvals,
-                        )
+    def __iter__(self):
+        return iter(self.items)
 
-                if 'Colo' in fc:
-                    fvals = {}
-                    for cname, cval in self.fixture_definitions[rf_manufacturer][rf_model][fc].items():
-                        # skip rotation 
-                        if 'Rotate' in cname: 
-                            continue
-                        for head in heads: 
-                            hfid = head.get('Fixture')
-                            cid = 0
-                            cstr_l = []
-                            for cid,c in sorted(fchannels.items()):
-                                fval = None
-                                if c in SPOT_ON_CHANNELS:
-                                    fval = '%d,255' % cid 
-                                elif c == 'Color':
-                                    fval = '%d,%d' % (cid, int(cval))
-                                cid += 1
-                                if fval: 
-                                    cstr_l.append(fval)
-                            fval = "," . join(cstr_l)
-                            fvals[hfid] = fval
-                        self.function(
-                            Type = 'Scene',
-                            Path = 'Fixtures/%s/Colors' % ( fg_name ),
-                            Name = 'Fixtures/%s/Colors/%s' % ( fg_name, cname ),
-                            FixtureVals = fvals,
-                        )
+class FixtureDefinition(FixtureDefinitions):
+    # for all fixture definitions..
+    xmlns = 'http://www.qlcplus.org/FixtureDefinition'
 
-                if 'Red' in fc:
-                    # generate generic colors
-                    for cname,cd in rgbw.items(): 
-                        fvals = {}
-                        for head in heads: 
-                            hfid = head.get('Fixture')
-                            cid = 0
-                            cstr_l = []
-                            for cid,c in sorted(fchannels.items()):
-                                fval = None
-                                if c == 'Intensity' or c == 'Dimmer':
-                                    fval = '%d,255' % cid 
-                                elif c == 'Red':
-                                    fval = '%d,%d' % (cid, cd['rgbw'][0])
-                                elif c == 'Green':
-                                    fval = '%d,%d' % (cid, cd['rgbw'][1])
-                                elif c == 'Blue':
-                                    fval = '%d,%d' % (cid, cd['rgbw'][2])
-                                elif c == 'White':
-                                    fval = '%d,%d' % (cid, cd['rgbw'][3])
-                                cid += 1
-                                if fval: 
-                                    cstr_l.append(fval)
-                            fval = "," . join(cstr_l)
-                            fvals[hfid] = fval
+    def __init__(self, path):
+        ''' read the fixture xml into an dict indexed by manuf and model'''
+        # read/parse the file
+        ET.register_namespace('', FixtureDefinition.xmlns)
 
-                        self.function(
-                            Type = 'Scene',
-                            Path = 'Fixtures/%s/Colors' % ( fg_name ),
-                            Name = 'Fixtures/%s/Colors/%s' % ( fg_name, cname ),
-                            FixtureVals = fvals,
-                        )
+        try: 
+            tree = ET.parse(path)
+        except Exception:
+            self.manufacturer = None
+            return None
+        self.root = tree.getroot()
 
-                # generate generic position
-                if ('Pan' in fc_group or 'Pan' in fc) and not 'Speed' in fc:
-                    fvals = {}
-                    for head in heads: 
-                        hfid = head.get('Fixture')
-                        cid = 0
-                        cstr_l = []
-                        for cid,c in sorted(fchannels.items()):
-                            fval = None
-                            for cn in Movement_Channel_Names:
-                                if cn in c and not 'Speed' in c:
-                                    fval = '%d,128' % cid 
-                            cid += 1
-                            if fval: 
-                                cstr_l.append(fval)
-                        fval = "," . join(cstr_l)
-                        fvals[hfid] = fval
+        # set accessors
+        self.manufacturer = self.root.find('{%s}Manufacturer' % FixtureDefinition.xmlns).text
+        self.model = self.root.find('{%s}Model' % FixtureDefinition.xmlns).text
+        self.type = self.root.find('{%s}Type' % FixtureDefinition.xmlns).text
 
-                    self.function(
-                        Type = 'Scene',
-                        Path = 'Fixtures/%s/Positions' % ( fg_name ),
-                        Name = 'Fixtures/%s/Positions/Preset' % ( fg_name ),
-                        FixtureVals = fvals,
-                    )                    
+        self.channels = Channels(self.root)
+        self.modes = Modes(self.root)
+        
+
+class Channels(FixtureDefinition):
+    ''' extract channels and return a list '''
+    def __init__(self, root):
+        self.items = []
+        for item in root.findall('{%s}Channel' % FixtureDefinition.xmlns):
+            self.items.append(Channel(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+
+    def find(self, name):
+        return self.find_by_name(name)
+
+    def __iter__(self):
+        return iter(self.items)
+
+class Channel(Channels):
+    def __init__(self, root):
+        self.root = root
+        # create accessors
+        self.name = root.get('Name')
+        self.capabilities = Capabilities(root)
+        if group := root.find('Group'):
+            self.group = group.text
+        else:
+            self.group = None
+
+class Capabilities(Channel):
+    def __init__(self, root):
+        self.items = []
+        for item in root.findall('{%s}Capability' % FixtureDefinition.xmlns):
+            self.items.append(Capability(item))
+
+        self.names = list(map(lambda x: x.name, self.items))
+
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+
+    def find(self, name):
+        self.find_by_name(name)
+
+    def __iter__(self):
+        return iter(self.items)
 
 
+class Capability(Capabilities):
+    def __init__(self, root):
+        self.root = root
+        self.name = root.text
+        self.min = root.get('Min')
+        self.max = root.get('Max')
 
+class Modes(Channel):
+    def __init__(self, root):
+        self.items = []
+        for item in root.findall('{%s}Mode' % FixtureDefinition.xmlns):
+            self.items.append(Mode(item))
 
+        self.names = list(map(lambda x: x.name, self.items))
+
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+    
+    def find(self, name):
+        return self.find_by_name(name)
+
+    def __iter__(self):
+        return iter(self.items)
+
+class Mode(Modes):
+    def __init__(self, root):
+        self.root = root
+        self.name = root.get('Name')
+        self.mode_channels = ModeChannels(root)
+
+class ModeChannels(Mode):
+    def __init__(self, root):
+        self.root = root
+        self.items = []
+        for item in root.findall('{%s}Channel' % FixtureDefinition.xmlns):
+            self.items.append(ModeChannel(item))
+        
+        self.names = list(map(lambda x: x.name, self.items))
+        
+    def find_by_name(self, name):
+        for i in self.items:
+            if i.name == name:
+                return i
+    
+    def find_by_number(self, number):
+        for i in self.items:
+            if i.number == number:
+                return i
+
+    def find(self, name):
+        return self.find_by_name(name)
+
+    def __iter__(self):
+        return iter(self.items)
+
+class ModeChannel(ModeChannels):
+    def __init__(self, root):
+        self.root = root
+        self.name = root.text
+        self.number = root.get('Number')
+        
+        
 

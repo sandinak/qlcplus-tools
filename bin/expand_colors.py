@@ -10,102 +10,79 @@ Tool to pull osc config from Mitti and push script entries for QLC+
 # -*- coding: utf-8 -*-
 
 import argparse
-
-import argparse
-import logging as log
-import os
-import pprint
 import sys
-import time
-import urllib.request
-from html.parser import HTMLParser
+from os import path
 
-BASE_FUNCTION_ID=10000
-EXPORTED_FUNCTIONS = [
-    'play',
-    'jump',
-    'loopOn',
-    'loopOff',
-]
+from QLC import QLC
 
-import yaml
+DESC = '''
+This tool will:
+- ingest a showfile
+- ingest known fixtures based on normal QLC pathing
+- expand fixture capabilities by fixture group into scenes
+- edit in place or (over) write a new file
+'''
 
-from qlc import qlc
+def get_args():
+    ''' read arguments from C/L '''
+    parser = argparse.ArgumentParser(
+        description=DESC,
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.set_defaults(help=False)
+    parser.set_defaults(overwrite=False)
+    parser.set_defaults(inplace=False)
+    parser.set_defaults(dump=False)
+    parser.add_argument("-i", "--inplace",
+                        help='Overwrite the showfile in place.',
+                        action="store_true")
+    parser.add_argument("-d", "--dump",
+                        help='Dump modifications to STDOUT',
+                        action="store_true")
+    parser.add_argument("-o", "--outputfile",
+                        type=str, default=None,
+                        help="Write to output file")
+    parser.add_argument("-F", "--overwrite", action="store_true",
+                        help="overwrite existing output file")
+    parser.add_argument('showfile', type=str,
+                        help='Showfile to extend')
 
-class OSC_HTMLParser(HTMLParser):
-    ''' We rip all the <strong> headings out as those are the valid
-        commands. 
-        NOTE: interestingly cue's start at 1 not zero .. so to keep things
-        consistent .. I am using a dict of lists '''
-    def __init__(self):
-        HTMLParser.__init__(self)
+    args = parser.parse_args()
+    if args.help or not args.showfile:
+        parser.print_help()
+        sys.exit(0)
 
-    def read(self, data):
-        ''' read the input and return a list of cues '''
-        # clear output and reset parsers state
-        self.cues = {}
-        self.reset()
+    return args
 
-        # parse the data
-        self.feed(data)
-        return self.cues
 
-    def handle_starttag(self, tag, attrs):
-        ''' all the cue's are in <strong> Tags '''
-        if tag == 'strong':
-            self.valid_data = 1
-    
-    def handle_endtag(self, tag):
-        self.valid_data = 0
+def main():
+    # load a showfile
+    args = get_args()
 
-    def handle_data(self, data):
-        ''' split the cues' out .. eventually we will want 
-            to merge this with config so we can default some
-            of the actions that take values, right now we only
-            operate on functions that require no value '''
-        if self.valid_data:
-            # this is weird because some functions have subconfig 
-            pdata = data.split('/')
-            if len(pdata) >= 4:
-                cue_id = pdata[2]
-                function = pdata[3]
-                if not self.cues.get(cue_id):
-                    self.cues[cue_id] = []
-                self.cues[cue_id].append(function)
+    if not (args.outputfile and args.inplace):
+        print('must specify -i or and outputfile.')
+        sys.exit(1)
 
-def sync_mitti():
-    # sync mitti
-    with urllib.request.urlopen('http://localhost:51000') as response:
-        html = response.read().decode('utf-8')
-    if html: 
-        osc = OSC_HTMLParser()
-        cues = osc.read(html)
+    #  load the file and expand
+    q = QLC(args.showfile)
+    q.expand_fixture_group_capabilities()
 
-        host_args = [
-            'arg:127.0.0.1',
-            'arg:51000',
-        ]
+    # handle output
+    if args.dump:
+        q.workspace.dump()
 
-        # create scripts for all functions.
-        for cue,functions in cues.items():
-            for function in functions: 
-                if not function in EXPORTED_FUNCTIONS:
-                    continue
-                name = '/Mitti/%s/%s' % (cue, function)
-                q.function(
-                    Name    = name,
-                    Path    = name,
-                    Type    = 'Script',
-                    ID      = (BASE_FUNCTION_ID + int(cue)),
-                    Command = 'systemcommand:/usr/local/bin/sendosc ' 
-                                "arg: 127.0.0.1 arg:51000 " 
-                                "arg:/mitti/%s/%s" % (cue, function)
-                )
+    elif args.inplace: 
+        # this assumes overwrite
+        q.workspace.write(args.showfile)
 
-# load a showfile
-q = qlc(file='../showfiles/blank.qxw')
+    elif args.outputfile:
+        if path.exists(args.outputfile):
+            if not args.overwrite:
+                yn = input(f'Overwrite {args.outputfile} [yN] ?')
+                if 'y' in yn.lower():
+                    q.workspace.write(args.outputfle)
+            else:
+                    q.workspace.write(args.outputfle)
 
-# expand color scenes for fixtures
-q.expand_fixture_group_capabilities()
 
-q.write()
+if __name__ == '__main__':
+    main()
