@@ -2,7 +2,7 @@
 
 '''
 ============================================================================
-Title: sync_osc
+Title: expand_fixture_features
 Description:
 Tool to pull osc config from Mitti and push script entries for QLC+
 ============================================================================
