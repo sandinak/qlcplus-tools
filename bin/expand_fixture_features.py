@@ -58,10 +58,6 @@ def main():
     # load a showfile
     args = get_args()
 
-    if not (args.outputfile and args.inplace):
-        print('must specify -i or and outputfile.')
-        sys.exit(1)
-
     #  load the file and expand
     q = QLC(args.showfile)
     q.expand_fixture_group_capabilities()
@@ -70,11 +66,15 @@ def main():
     if args.dump:
         q.workspace.dump()
 
-    elif args.inplace: 
-        # this assumes overwrite
+    elif not args.outputfile: 
+        if not args.inplace: 
+            yn = input(f'Overwrite {args.shofile} [yN] ?')
+            if not 'y' in yn: 
+                sys.exit(0)
+
         q.workspace.write(args.showfile)
 
-    elif args.outputfile:
+    else:
         if path.exists(args.outputfile):
             if not args.overwrite:
                 yn = input(f'Overwrite {args.outputfile} [yN] ?')

@@ -52,19 +52,19 @@ rgbw = {        #shortname               R    G    B    W
     'White':    { 'n':'W',    'rgbw': [  0,   0,  0,  255], },
 
     # with white
-    'Red/W':    { 'n':'RW',   'rgbw': [255,   0,   0, 255], },
-    'Green/W':  { 'n':'GW',   'rgbw': [0,   255,   0, 255], },
-    'Blue/W':   { 'n':'BW',   'rgbw': [0,     0, 255, 255], },
-    'Yellow/W': { 'n':'YW',   'rgbw': [255, 255,   0, 255], },
-    'Cyan/W':   { 'n':'CW',   'rgbw': [0,   255, 255, 255], },
-    'Red/W':    { 'n':'MW',   'rgbw': [255,   0, 255, 255], },
-    'Purple/W': { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
-    'Rasp/W':   { 'n':'RaW',  'rgbw': [255,   0, 128, 255], },
-    'Orange':   { 'n':'OrW',  'rgbw': [255, 128,   0, 255], },
-    'Ocean':    { 'n':'OcW',  'rgbw': [  0, 128, 128, 255], },
-    'Turqoise': { 'n':'TW',   'rgbw': [  0, 255, 128, 255], },
-    'Purple':   { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
-    'Pink':     { 'n':'PkW',  'rgbw': [255,   0, 128, 255], },
+    'Red+W':    { 'n':'RW',   'rgbw': [255,   0,   0, 255], },
+    'Green+W':  { 'n':'GW',   'rgbw': [0,   255,   0, 255], },
+    'Blue+W':   { 'n':'BW',   'rgbw': [0,     0, 255, 255], },
+    'Yellow+W': { 'n':'YW',   'rgbw': [255, 255,   0, 255], },
+    'Cyan+W':   { 'n':'CW',   'rgbw': [0,   255, 255, 255], },
+    'Red+W':    { 'n':'MW',   'rgbw': [255,   0, 255, 255], },
+    'Purple+W': { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
+    'Rasp+W':   { 'n':'RaW',  'rgbw': [255,   0, 128, 255], },
+    'Orange+W': { 'n':'OrW',  'rgbw': [255, 128,   0, 255], },
+    'Ocean+W':  { 'n':'OcW',  'rgbw': [  0, 128, 128, 255], },
+    'Turqoise+W': { 'n':'TW', 'rgbw': [  0, 255, 128, 255], },
+    'Purple+W': { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
+    'Pink+W':   { 'n':'PkW',  'rgbw': [255,   0, 128, 255], },
 }
 # because names are such random things
 RGB_ALTERNATES = {
@@ -87,6 +87,22 @@ MOVEMENT_CHANNEL_NAMES = [
     'Tilt',
     'Vertical'
 ]
+
+# there's really only 1 here as we don't know the relative 
+# horizontal positions, nor the total vertical deflection;
+# however having the preset to start with will help minimize
+# movements from this position .. rather than starting with 0,0
+# TODO: eventually it'd be good to pre-compute some positions by the 
+#       head PAN Max and Tilt Max .. however we dont' know which way 
+#       the heads turn or starting position .. so V is more reliable 
+#       than H... be nice to incporporate some of the work from 
+#       dmx_followspot which describes position, height, etc.
+BASE_POSITIONS = {
+            #    H       V DMX Values, not angle.
+    'Base':   [ 128,    128] ,
+}
+
+
 
 def match(items,item):
     for i in items:
@@ -164,22 +180,29 @@ class QLC():
             self.generate_color_scenes(fg)
             self.generate_capability_scenes(fg)
 
+
     def generate_color_scenes(self, fg):
         ''' this is now fixture independent... which means that groups
             can have more than one fixture type and it will try still do the 
             right thing finding the intersections of colors across all the 
             fixtures '''
         Type = 'Scene' 
-        Path = '/'.join(['Fixture',fg.name,'Colors'])
+        Path = '/'.join(['Colors', fg.name])
         for color_name, color_data in rgbw.items():  
             Name = '/'.join([Path, color_name])
             # generate fval by head
             fvals = {}
             for head in fg.heads: 
-                # get fixture 
+                # get fixture, if we can't find it.. skip
                 fixture = self.workspace.engine.fixtures.find_by_id(head.fixture_id)
+                if fixture.mode == None: 
+                    continue
+
+                # we skip undefined fixtures or pixel fixtures 
                 definition = self.fixture_definitions.find_by_fixture(fixture)
-                # we sort here to get them in numerical order
+                if definition == None or 'Pixels' in definition.type:
+                    continue
+
                 mode_channels = definition.modes.find_by_name(fixture.mode).mode_channels
 
                 fval = []
@@ -189,7 +212,7 @@ class QLC():
                     for mc in mode_channels:
                         mc_num = mc.number 
                         mc_name = mc.name 
-                        if 'Intensity' in mc_name:
+                        if mc_name == 'Intensity' or mc_name == 'Dimmer':
                             fval.append(f'{mc_num},255')
                         elif 'Red' in mc_name:
                             fval.append(f'{mc_num},{red}')
@@ -247,31 +270,38 @@ class QLC():
             elif ( fixture_definition != d ):
                 return
 
+            # determine mode matches for all
             if fixture_definition:
                 m = fixture_definition.modes.find_by_name(fixture.mode)
             if ( mode == None ): 
                 mode = m
-            elif (mode != m):
+            elif mode != m:
+                return
+
+            # if we have no mode or channels .. moot.
+            if mode == None or mode.mode_channels == None:
                 return
         
-        # now get the channels to expand for this fixture mode. 
+        # now get the capability channels to expand for this fixture mode. 
         # we identify the right ones by the channel groups we support.
         for mode_channel in mode.mode_channels:
 
             # get the corresponding channel configuration for this mode_channel
             channel = fixture_definition.channels.find_by_name(mode_channel.name)
 
-
-            # if more than 1 capability that's not the color .. expand
+            # if more than 1 capability that's not the base color .. expand
             if mode_channel.name == 'Color' or len(channel.capabilities.items) == 1:
                 continue
 
-            Path = '/'.join(['Fixture', fg.name, channel.name])
+            # normalize the name so it doesn't become part of the path
+            channel_name = channel.name.replace('/','+')
+            Path = '/'.join(['FixtureGroups', fg.name, channel_name])
 
             # get capabilities for this channel
             for capability in channel.capabilities:
 
-                # set the scene name and capability value
+                # set the normalized scene name and capability value
+                capability_name = capability.name.replace('/','+')
                 Name = '/'.join([Path, capability.name ])
 
                 # generate fvals for this capability on this channel
@@ -289,6 +319,34 @@ class QLC():
                     Path = Path,
                     Name = Name,
                     FixtureVals = fvals)
+            
+        # if moving head, generate base position for this fixture 
+        if fixture_definition.type  == 'Moving Head': 
+            Path = '/'.join(['Positions', fg.name])
+            for name, pos in BASE_POSITIONS.items():
+                h,v = pos
+                Name = '/'.join([Path, name ])
+                fvals = {}
+                for head in fg.heads:
+                    fval = []
+                    for mc in mode.mode_channels:
+                        channel = fixture_definition.channels.find_by_name(mc.name)
+                        # no consistency among fixtures here.. frustrating. 
+                        if channel.group == 'Pan':
+                            fval.append(f'{mc.number},{h}')
+                        elif channel.group == 'Tilt':
+                            fval.append(f'{mc.number},{v}')
+                    fvals[head.fixture] = ','.join(fval)
+                
+                # generate scene
+                self.function(
+                    Type = 'Scene',
+                    Path = Path,
+                    Name = Name,
+                    FixtureVals = fvals)
+            
+
+    
 
     # TODO: extrapolate this into the actual classes 
     def function(self, **kwargs):
@@ -754,7 +812,8 @@ class Channel(Channels):
         # create accessors
         self.name = root.get('Name')
         self.capabilities = Capabilities(root)
-        if group := root.find('Group'):
+        group = root.find('{%s}Group' % FixtureDefinition.xmlns)
+        if group != None:
             self.group = group.text
         else:
             self.group = None
