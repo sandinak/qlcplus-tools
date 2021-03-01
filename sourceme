@@ -11,7 +11,7 @@ echo "activating $GIT_NAME"
 COLOR_PROMPT=${GIT_NAME}
 
 # extend path
-export PATH="${PATH}:${PWD}/bin"
+export PATH="${PATH}:${PWD}/bin:${PATH}/lib"
 
 # add local dir for libs
 export PYTHONPATH="${PATH}/lib:${PYTHONPATH}"
