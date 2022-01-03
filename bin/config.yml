@@ -1,0 +1,73 @@
+---
+
+fixture_definitions:
+  step_row:
+    name: 2 Step Rows
+    type: led_matrix
+    led_type: rgb
+    rows: 2
+    cols: 64
+
+fixtures: 
+  - name: us-1-12
+    model: Step Row 64 Heads
+    ip_address: 172.18.1.241
+    u: 0
+  - name: us-1-34
+    model: Step Row 64 Heads
+    ip_address: 172.18.1.241
+    u: 1
+  - name: us-1-56
+    model: Step Row 64 Heads
+    ip_address: 172.18.1.241
+    u: 2
+  - name: us-1-78
+    model: Step Row 64 Heads
+    ip_address: 172.18.1.241
+    u: 3
+
+fixture_groups:
+  us-1:
+    type: step
+    name: us-1
+    rows: 8
+    cols: 64
+    fixtures: step_row
+    ip_address: 172.18.1.201
+
+  us-2:
+    name: us-2
+    rows: 8
+    cols: 64
+    fixtures: step_row
+    ip_address: 172.18.1.202
+
+  us-3:
+    name: us-3
+    rows: 8
+    cols: 64
+    fixtures: step_row
+    ip_address: 172.18.1.203
+    
+  us-4:
+    name: us-4
+    rows: 8
+    cols: 64
+    fixtures: step_row
+    ip_address: 172.18.1.204
+
+  us:
+    name: us
+    type: matrix
+    rows: 8
+    cols: 256
+    fixtures:
+      - us-1
+      - us-2
+      - us-3
+      - us-4 
+    
+
+
+
+

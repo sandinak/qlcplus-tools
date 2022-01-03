@@ -16,7 +16,7 @@ NOTES/TODO:
 
 import logging as log
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
+from xml.dom import XML_NAMESPACE, minidom
 import sys
 import copy
 import pprint
@@ -171,7 +171,6 @@ class QLC():
         self.fixture_definitions = FixtureDefinitions(FIXTURE_PATHS)
         self.workspace = Workspace(file)
 
-
     def expand_fixture_group_capabilities(self):
         for fg in self.workspace.engine.fixture_groups:
             if len(fg.heads.items) == 0:
@@ -180,6 +179,105 @@ class QLC():
             self.generate_color_scenes(fg)
             self.generate_capability_scenes(fg)
 
+    def generate_universes(self, universes):
+        us = self.workspace.engine.inputoutputmap
+        # these are mapped as shown
+        id = 0
+        for u in universes:
+            this_u = us.find_by_id(id)
+            if not this_u:
+                self.generate_universe(us, u)
+
+
+    def generate_fixture_group(self, fg):
+        fgs = self.workspace.engine.fixture_groups
+        Name = fg.get('name')
+        efg = fgs.find_by_name(fg.get('name'))
+        if not efg:
+            this_fg = ET.SubElement(fgs.root, "FixtureGroup")
+            ID = str(fgs.next_id())
+            this_fg.set('ID',ID)
+        else: 
+            this_fg = efg
+
+    def generate_fixtures(self,fixtures):
+        output_ips = dict()
+        fs = self.workspace.engine.fixtures
+        for fixture in fixtures:
+            output_ip = fixture.get('output_ip')
+            output_ip_id = None
+            # generate default output_ip_uni if not set
+            if output_ip:
+                if output_ip not in output_ips:
+                    output_ips[output_ip] = []
+                output_ips[output_ip].append(fixture)
+                output_ip_uni = fixture.get('output_uni' or str(len(output_ips[output_ip])+1))
+
+            # find existing fixture
+            Name = fixture.get('name')
+            ef = fs.find_by_name(Name)
+            if not ef:
+                this_f = ET.SubElement(fs.root, "Fixture")
+                ID = str(fs.next_id())
+                this_f.set('ID', ID)
+                this_f.set('Name', Name)
+            else:
+                this_f = ef
+
+            # find fixture definition
+            Model = fixture.get('model')
+            this_fd = self.fixture_definitions.find_by_model(Model)
+            if not this_fd:
+                raise Exception(f'Unable to find fixture definition for {Model}')
+            this_f.set('Manufacturer', this_fd.get('Manufacturer'))
+            this_f.set('Model', this_fd.get('Model'))
+            
+            # find mode
+            Mode = fixture.get('Mode')
+            if Mode:
+                fd_mode = this_fd.modes.find_by_name(Mode)
+                if not fd_mode:
+                    raise Exception(f'Unable to find mode {Mode} in fixture def: {Model}') 
+            elif len(this_fd.modes.items) >= 1:
+                fd_mode = this_fd.modes.items[0]
+            else:
+                raise Exception(f'No mode defined for fixture definition {Model}')
+            this_f.set('Mode', Mode)
+
+        def generate_universe(self,us):
+            # find U
+            us = self.workspace.engine.inputoutputmap
+            if 'u' in fixture:
+                this_u = us.find_by_id(fixture.get('u'))
+            elif 'u_name' in fixture: 
+                this_u = us.find_by_name(fixture.get('name'))
+            elif 'ip_address' in fixture:
+                this_u = us.find_by_output(
+                    fixture.get('ip_address'),fixture.get('output_id') or output_ip_uni )
+
+            if not this_u:
+                this_u = us.generate({
+                    'ID': str(us.last_ud()+1),
+                    'Name': fixture.get('u_name') or fixture.get('name'),
+                })
+
+            u_id = this_u.get('ID')
+                
+            # setup output to ArtNet if needed
+            if output_ip:
+                this_output = this_u.root.find(this_u, "{%s}Output")
+                if not this_output:
+                    this_output = ET.SubElement(this_u.root,"Output")
+                this_output.set('Plugin', fixture.get('plugin') or 'ArtNet')
+                # TODO: map this by known IP?
+                this_output.set('Line', fixture.get('line') or '2')
+                this_output_p = this_output.root.find('PluginParamters')
+                if not this_output_p:
+                    this_output_p = ET.SubElement(this_output_p.root, "{%s}PluginParameters")
+                    this_output_p.set('outputIP', output_ip)
+                    this_output_p.set('outputUni', output_ip_uni)
+                
+        
 
     def generate_color_scenes(self, fg):
         ''' this is now fixture independent... which means that groups
@@ -518,6 +616,24 @@ class Universes(InputOutputMap):
 
         self.names = list(map(lambda x: x.name, self.items))
 
+        # map addresses
+        self.u_by_output_ip = dict()
+        for u in self.items:
+            if u.output.output_ip:
+                self.u_by_output_ip[u.output_ip] = u
+
+    def add(self, u):
+        self.items.append(Universe.generate(root, u))
+
+    
+    def find_by_output(self, output_ip, output_uni=None):
+        u = self.u_by_ouput_ip.get(output_ip)
+        if u:
+            for o_ip_u in self.u_by_output_ip[output_ip]:
+                if o_ip_u.output_uni == output_uni:
+                    return o_ip_u
+
+
     def find_by_name(self, name):
         for i in self.items:
             if i.name == name:
@@ -545,19 +661,43 @@ class Universe(Universes):
             self.input = Input(root)
         if root.find('{%s}Output'):
             self.output = Output(root)
+            self.output_uni = self.output_uni
+            self.output_ip = self.output_ip
+
+  
+    def generate(self, root, u):
+        this_u = ET.SubElement(root, "{%s}Universe" % Workspace.xmlns)
+        this_u.set('ID', u.get('ID'))
+        this_u.set('Name', u.get('Name'))
+        if u.get('outputIP') and u.get('outputUni'):
+            Output.generate(this_u, u)
 
 class Input(Universe):
     def __init__(self,root):
-        self.root = root.find('{%s}Input')
+        self.root = root.find('{%s}Input' % Workspace.xmlns)
         self.plugin = self.root.get('Plugin')
         self.line = self.root.get('Line')
 
+
+# TODO: this all assumes artnet, make agnostic
 class Output(Universe):
     def __init__(self,root):
-        self.root = root.find('{%s}Input')
+        self.root = root.find('{%s}Input' % Workspace.xmlns)
         self.plugin = self.root.get('Plugin')
         self.line = self.root.get('Line')
-    
+        parameters = self.root.find('{%s}PluginParameters' % Workspace.xmlns)
+        self.outputUni = parameters.get('outputUni')
+        self.outputIP = parameters.get('outputIP')
+
+    def generate(self,root, u):
+        this_output = ET.SubElement(root,"Output")
+        this_output.set('Plugin', 'ArtNet')
+        # TODO: map this by known IP?
+        this_output.set('Line', u.get('Line') or '2')
+        this_output_p = ET.SubElement(this_output.root, "{%s}PluginParameters" % Workspace.xmlns)
+        this_output_p.set('outputIP', u.get('outputIP'))
+        this_output_p.set('outputUni', u.get('outputUni'))
+
 class Fixtures(Engine):
     def __init__(self, root):
         self.root = root
@@ -728,6 +868,7 @@ class FixtureDefinitions(QLC):
     def __init__(self, paths):
         self.paths = paths
         self.items = dict()
+        self.fd_by_model = dict()
         for path in paths:
             self.read_fixture_dir(path)
     
@@ -747,9 +888,15 @@ class FixtureDefinitions(QLC):
                     model = fd.model
                 else:
                     continue
+                # list by manufacturer and model
                 if not manufacturer in self.items:
                     self.items[manufacturer] = {}
                 self.items[manufacturer][model] = fd
+                # list by model
+                if not model in self.fd_by_model:
+                    self.fd_by_model[model] = []
+                self.fd_by_model[model].append(fd)
+
 
     def find_by_manufacturer_model(self, manufacturer, model):
         if ( manufacturer in self.items and model in self.items[manufacturer] ):
@@ -757,6 +904,9 @@ class FixtureDefinitions(QLC):
 
     def find_by_fixture(self, fixture):
         return self.find_by_manufacturer_model(fixture.manufacturer, fixture.model)
+
+    def find_by_model(self, model):
+        return self.fd_by_model.get(model)
 
     def __iter__(self):
         return iter(self.items)
@@ -784,7 +934,30 @@ class FixtureDefinition(FixtureDefinitions):
 
         self.channels = Channels(self.root)
         self.modes = Modes(self.root)
+        self.physical = Physical(self.root)
         
+class Physical(FixtureDefinition):
+    ''' extract channels and return a list '''
+    def __init__(self, root):
+        self.item = root.findall('{%s}Physical' % FixtureDefinition.xmlns)
+        # get layout
+        if self.item:
+            layout = self.item[0].find('{%s}Layout' % FixtureDefinition.xmlns)
+            if layout:
+                self.layout.width = layout.get('Width')
+                self.layout.height = layout.get('Height')
+
+            # get dimensions
+            dimensions = self.item[0].find('{%s}Dimensions' % FixtureDefinition.xmlns)
+            if dimensions: 
+                self.dimensions.width = dimensions.get('Width')
+                self.dimensions.height = dimensions.get('Height')
+                self.dimensions.depth = dimensions.get('Depth')
+                self.dimensions.weight = dimensions.get('weight')
+
+
+
+ 
 
 class Channels(FixtureDefinition):
     ''' extract channels and return a list '''
@@ -836,7 +1009,6 @@ class Capabilities(Channel):
 
     def __iter__(self):
         return iter(self.items)
-
 
 class Capability(Capabilities):
     def __init__(self, root):
@@ -902,4 +1074,3 @@ class ModeChannel(ModeChannels):
         self.number = root.get('Number')
         
         
-
