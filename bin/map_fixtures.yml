@@ -1,0 +1,82 @@
+---
+
+# default network for ArtNet in CIDR
+artnet_network: 172.19.0.0/24
+
+# NOTE: These are ordered
+universes:
+  - name: Truss
+    ip: 172.19.0.100
+  - name: Wireless
+    ip: 172.19.0.101
+
+fixtures:
+  - name: DS1-1
+    definition: Step Row 64 Heads
+    mode: All
+    address: 0
+    ip: 172.19.0.201
+    artnet_u: 1
+    channel: 1
+    
+  - name: DS1-2
+    model: Step Row 64 Heads
+    mode: All
+    address: 192
+    ip: 172.19.0.201
+    arnet_u: 1
+    channel: 192
+
+  - name: DS1-3
+    model: Step Row 64 Heads
+    mode: All
+    universe: 3
+    address: 0
+    ip: 172.19.0.201
+    arnet_u: 2
+    
+  - name: DS1-4
+    model: Step Row 64 Heads
+    mode: All
+    universe: 3
+    address: 192
+    channels: 192
+
+  - name: DS1-5
+    model: Step Row 64 Heads
+    mode: All
+    universe: 4
+    address: 0
+    channels: 192
+    
+  - name: DS1-6
+    model: Step Row 64 Heads
+    mode: All
+    universe: 4
+    address: 192
+    channels: 192
+
+  - name: DS1-7
+    model: Step Row 64 Heads
+    mode: All
+    universe: 5
+    address: 0
+    channels: 192
+    
+  - name: DS1-8
+    model: Step Row 64 Heads
+    mode: All
+    universe: 5
+    address: 192
+    channels: 192
+    
+
+fixture_groups:
+  - name: All Steps
+    x: 256
+    y: 24 
+    fixtures:
+      - name: ds1-1
+        x: 0
+        y: 
+

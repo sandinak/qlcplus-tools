@@ -56,6 +56,7 @@ def get_args():
     parser.set_defaults(inplace=False)
     parser.set_defaults(import_fixture_groups=False)
     parser.set_defaults(export_fixture_groups=False)
+    parser.set_defaults(expand_fixtures=False)
     parser.set_defaults(dump=False)
     parser.set_defaults(verbose=False)
     parser.set_defaults(debug=False)
@@ -66,20 +67,26 @@ def get_args():
                         help='enable debugging output',
                         action="store_true")
     parser.add_argument("--logfile", help="Send output to a file.")
-    parser.add_argument("-i", "--inplace",
-                        help='Overwrite the showfile in place.',
-                        action="store_true")
     parser.add_argument("-d", "--dump",
                         help='Dump modifications to STDOUT',
                         action="store_true")
-    parser.add_argument("--import-fixture-groups", "-I", help="Export Fixture Groups to XLSX file", action='store_true')
-    parser.add_argument("--export-fixture-groups", "-E", help="Export Fixture Groups to XLSX file", action='store_true')
-    parser.add_argument("--xls-file", "-x", help="Export Fixture Groups to XLSX file")
-    parser.add_argument("-o", "--outputfile",
+
+    xls = parser.add_argument_group("XLS Import/Export")
+    xls.add_argument("--import-fixture-groups", "-I", help="Import Fixture Groups from XLSX file", action='store_true')
+    xls.add_argument("--export-fixture-groups", "-E", help="Export Fixture Groups to XLSX file", action='store_true')
+    xls.add_argument("--xls-file", "-x", help="Export Fixture Groups to XLSX file")
+
+    fmgmt = parser.add_argument_group("File IN/Out")
+    fmgmt.add_argument("-o", "--outputfile",
                         type=str, default=None,
                         help="Write to output file")
-    parser.add_argument("-F", "--overwrite", action="store_true",
+    fmgmt.add_argument("-F", "--overwrite", action="store_true",
                         help="overwrite existing output file")
+    fmgmt.add_argument("-i", "--inplace",
+                        help='Overwrite the showfile in place.',
+                        action="store_true")
+    parser.add_argument("-X", "--expand-fixtures", help="Expand Fixture Features into Scenes", action='store_true')
+
     parser.add_argument('showfile', type=str,
                         help='Showfile to extend')
 
@@ -111,9 +118,11 @@ def main():
         q.export_fixture_groups(args.xls_file)
         
     elif args.import_fixture_groups and args.xls_file:
+        if not args.inplace or args.outputfile:
+            print("importing fixture groups requires output option.")
+            sys.exit(1)
         q.import_fixture_groups(args.xls_file)
-
-    else:
+    if args.expand_fixtures:
         q.expand_fixture_group_capabilities()
 
     # handle output

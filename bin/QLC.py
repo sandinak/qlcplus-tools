@@ -51,7 +51,8 @@ rgbw = {        #shortname               R    G    B    W
     'Turqoise': { 'n':'T',    'rgbw': [  0, 255, 128,   0], },
     'Purple':   { 'n':'P',    'rgbw': [128,   0, 255,   0], },
     'Pink':     { 'n':'Pk',   'rgbw': [255,   0, 128,   0], },
-    'White':    { 'n':'W',    'rgbw': [  0,   0,  0,  255], },
+    'White':    { 'n':'W',    'rgbw': [  0,   0,   0,  255], },
+    'Flesh':    { 'n':'F',    'rgbw': [245, 204, 176,  0], },
     'IntOnly':  { 'n':'IO',   'rgbw': [  0,   0,  0,  0],   },
 
     # with white
@@ -68,6 +69,7 @@ rgbw = {        #shortname               R    G    B    W
     'Turqoise+W': { 'n':'TW', 'rgbw': [  0, 255, 128, 255], },
     'Purple+W': { 'n':'PW',   'rgbw': [128,   0, 255, 255], },
     'Pink+W':   { 'n':'PkW',  'rgbw': [255,   0, 128, 255], },
+    'Flesh+W':  { 'n':'FW',   'rgbw': [245, 204, 176, 255], },
 }
 # because names are such random things
 RGB_ALTERNATES = {
