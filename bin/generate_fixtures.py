@@ -2,29 +2,33 @@
 
 '''
 ============================================================================
-Title: expand_fixture_features
+Title: generate fixtures based on definitions
 Description:
-Tool to pull osc config from Mitti and push script entries for QLC+
+Pulls in config from yaml and generates fixtures and layouts.
 ============================================================================
 '''
 # -*- coding: utf-8 -*-
 
 import argparse
 import sys
-from os import path
+import yaml
 import logging
-
-
-logger = logging.getLogger(__name__)
+import pprint
+import os
 
 from QLC import QLC
 
+logger = logging.getLogger(__name__)
+
 DESC = '''
 This tool will:
-- ingest a showfile
+- ingest a yaml config
+- ingest a showfile 
 - ingest known fixtures based on normal QLC pathing
-- expand fixture capabilities by fixture group into scenes
-- edit in place or (over) write a new file
+- generate/update fixture definitions based on config
+- generate/update fixtures based on config
+- generate/update fixture groups based on config
+- edit in place or (over) write a new showfile 
 '''
 
 def setup_logging(args):
@@ -54,9 +58,6 @@ def get_args():
     parser.set_defaults(help=False)
     parser.set_defaults(overwrite=False)
     parser.set_defaults(inplace=False)
-    parser.set_defaults(import_fixture_groups=False)
-    parser.set_defaults(export_fixture_groups=False)
-    parser.set_defaults(expand_fixtures=False)
     parser.set_defaults(dump=False)
     parser.set_defaults(verbose=False)
     parser.set_defaults(debug=False)
@@ -67,26 +68,20 @@ def get_args():
                         help='enable debugging output',
                         action="store_true")
     parser.add_argument("--logfile", help="Send output to a file.")
+    parser.add_argument("-i", "--inplace",
+                        help='Overwrite the showfile in place.',
+                        action="store_true")
     parser.add_argument("-d", "--dump",
                         help='Dump modifications to STDOUT',
                         action="store_true")
-
-    xls = parser.add_argument_group("XLS Import/Export")
-    xls.add_argument("--import-fixture-groups", "-I", help="Import Fixture Groups from XLSX file", action='store_true')
-    xls.add_argument("--export-fixture-groups", "-E", help="Export Fixture Groups to XLSX file", action='store_true')
-    xls.add_argument("--xls-file", "-x", help="Export Fixture Groups to XLSX file")
-
-    fmgmt = parser.add_argument_group("File IN/Out")
-    fmgmt.add_argument("-o", "--outputfile",
+    parser.add_argument("-c", "--config_file",
+                        type=str, default=None,
+                        help="config file with definitions")
+    parser.add_argument("-o", "--output_file",
                         type=str, default=None,
                         help="Write to output file")
-    fmgmt.add_argument("-F", "--overwrite", action="store_true",
+    parser.add_argument("-F", "--overwrite", action="store_true",
                         help="overwrite existing output file")
-    fmgmt.add_argument("-i", "--inplace",
-                        help='Overwrite the showfile in place.',
-                        action="store_true")
-    parser.add_argument("-X", "--expand-fixtures", help="Expand Fixture Features into Scenes", action='store_true')
-
     parser.add_argument('showfile', type=str,
                         help='Showfile to extend')
 
@@ -94,14 +89,6 @@ def get_args():
     if args.help or not args.showfile:
         parser.print_help()
         sys.exit(0)
-
-    if args.inplace and args.outputfile:
-        print("can only write output file or in-place not both.")
-        sys.exit(1)
-
-    if ( args.export_fixture_groups or args.import_fixture_groups) and not args.xls_file:
-        print("xls file required to import or export fixture groups.")
-        sys.exit(1)
 
     return args
 
@@ -111,39 +98,52 @@ def main():
     args = get_args()
     setup_logging(args)
 
+    # load the config 
+    with open(args.config_file) as file:
+        cfg = yaml.load(file,Loader=yaml.FullLoader)
+
     #  load the file and expand
     q = QLC(args.showfile)
 
-    if args.export_fixture_groups and args.xls_file:
-        q.export_fixture_groups(args.xls_file)
-        
-    elif args.import_fixture_groups and args.xls_file:
-        if not args.inplace or args.outputfile:
-            print("importing fixture groups requires output option.")
-            sys.exit(1)
-        q.import_fixture_groups(args.xls_file)
-    if args.expand_fixtures:
-        q.expand_fixture_group_capabilities()
+    universes = cfg.get('universes', [])
+    if universes:
+        logger.info('generating %d universes' % len(universes))
+        q.generate_universes(universes)
+    q.workspace.dump()
+
+    fixtures = cfg.get('fixtures', [])
+    if fixtures:
+        logger.info('generating %d fixtures' % len(fixtures))
+        q.generate_fixtures(cfg.get('fixtures'))
+
+    fixture_groups = cfg.get('fixture_groups', [])
+    if fixture_groups: 
+        logger.info('generating %d fixture_groups' % len(fixture_groups))
+        q.generate_fixture_groups(fixture_groups)
+
+    # q.expand_fixture_group_capabilities()
 
     # handle output
     if args.dump:
+        logger.info('dumping workspace')
         q.workspace.dump()
 
-    if args.inplace:
-        if not args.overwrite:
-           yn = input(f'Overwrite {args.showfile} [yN] ?')
-           if 'n' in yn.lower():
-               sys.exit(0)
-        q.workspace.write(args.showfile) 
+    elif not args.output_file: 
+        if not args.inplace: 
+            yn = input(f'Overwrite {args.showfile} [yN] ?')
+            if not 'y' in yn: 
+                sys.exit(0)
 
-    elif args.outputfile:
-        logger.debug(f'writing {args.outputfile}...')
-        if path.exists(args.outputfile):
+        q.workspace.write(args.showfile)
+
+    else:
+        if os.path.exists(args.output_file):
             if not args.overwrite:
-                yn = input(f'Overwrite {args.outputfile} [yN] ?')
-                if 'n' in yn.lower():
-                    sys.exit(0)
-        q.workspace.write(args.outputfile)
+                yn = input(f'Overwrite {args.output_file} [yN] ?')
+                if 'y' in yn.lower():
+                    q.workspace.write(args.outputfle)
+            else:
+                    q.workspace.write(args.outputfle)
 
 
 if __name__ == '__main__':
