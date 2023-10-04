@@ -988,6 +988,26 @@ class FixtureGroup(FixtureGroups):
         self.id = root.get('ID')
         self.size = Size(root)
         self.heads = Heads(root)
+
+class ChannelsGroup(Engine):
+    def __init__(self, root, cg=None):
+        self.root = root
+        if cg != None:
+            self.root.set('ID', cg.get('id'))
+            self.root.set('Name', cg.get('name'))
+            self.root.set('Value', cg.get('value'))
+            self.root.set('InputUniverse', cg.get('InputUniverse'))
+            self.root.set('InputChannel', cg.get('InputChannel'))
+        self.id = root.get('ID')
+        self.name = root.get('Name')
+        self.value = root.get('Value')
+        self.input_universe = root.get('InputUniverse')
+        self.input_channel = root.get('InputChannel')
+        self.mapping = root.text
+   
+    def update(self, cg):
+        for k,v in data.items():
+            self.root.set(k,v)
     
 
 class Size(FixtureGroup):

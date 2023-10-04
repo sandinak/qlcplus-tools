@@ -19,4 +19,4 @@ pip_requirements: $(ACTIVATE_BIN) requirements.txt
 	. venv/bin/activate; PYTHONWARNINGS='ignore:DEPRECATION' pip3 install -r requirements.txt 
 
 freeze: requirements.txt
-	pip freeze > requirements.txt
+	pip3 freeze > requirements.txt
