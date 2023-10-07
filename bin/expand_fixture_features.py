@@ -118,7 +118,7 @@ def main():
         q.export_fixture_groups(args.xls_file)
         
     elif args.import_fixture_groups and args.xls_file:
-        if not args.inplace or args.outputfile:
+        if (not (args.inplace or args.outputfile)):
             print("importing fixture groups requires output option.")
             sys.exit(1)
         q.import_fixture_groups(args.xls_file)

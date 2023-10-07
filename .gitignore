@@ -1,4 +1,6 @@
 venv
 *.pyc
 
+*.qxw
+*.xls
 .vscode/settings.json

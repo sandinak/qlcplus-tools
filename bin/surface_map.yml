@@ -1,0 +1,15 @@
+---
+surface_maps:
+  APC40 mkII:
+    Intensity: Slider 1
+    Red: Slider 2
+    Green: Slider 3
+    Blue: Slider 4
+    White: Slider 5
+    Amber: Slider 6
+    UV: Slider 7
+    Strobe: Slider 8
+    Speed: Slider 9
+    Pan:
+
+
