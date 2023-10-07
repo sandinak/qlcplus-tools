@@ -1,3 +1,4 @@
 pyaml
 XlsxWriter
 pandas
+openpyxl
