@@ -13,7 +13,7 @@ add functionality as I go.  Much of this is predicated on my use case.. which is
 1. assemble collections into chaser by points in the show with timing and fading
 1. cue the show 
 
-You can see more details in [ShowfileDesign.md](docs/ShowfileDesign.md)
+You can see more details in [ShowfileDesign.md](./docs/ShowfileDesign.md)
 
 ## Naming Conventions
 This is predicated on what's been easy for me to teach to students and easy to find when assembling scenes into collections for a show
