@@ -22,18 +22,34 @@ This is predicated on what's been easy for me to teach to students and easy to f
 - each Collection is named based on thier use case
     - for cuepoints in the show I use {song}-{section}.{cue}-{name} to allow easy identification
 
+
 # Getting Started
-This tooling is setup to run in a venv locally and cleanly, to get things setup 
+
+This tooling is setup to run in a venv locally and cleanly, to get things setup
 
 ```
 git clone git@github.com:sandinak/qlcplus-tools.git
 . sourceme
 make
 ```
-You can then run the python scripts in bin: 
 
 - All the programs have a --help option 
 - All the programs are designed to be non-destructive .. they should not touch any existing configuration
+
+## How to use these tools:
+
+1. Create a new show file with fixtures mapped to universes as usual
+2. Create FixtureGroups of lights you'd like to address simultaniously, these can be of the same fixture type or different types
+3. Save the file
+4. Run the programs against the file. There is an --output option, however the programs are designed to be non-destructive and will only create things.
+5. Read the file back into QLC+
+6. Profit!
+
+## NOTES
+
+- So you can run these programs as many times as you'd like .. they're idempotent
+- If you add/change/update FixtureGroups .. you can just re-run the programs on the files.
+- As noted .. these are non-destructive.. so if you remove FixtureGroups .. this will NOT remove the corresponding scenes for those Groups
 
 # Programs
 
@@ -52,3 +68,4 @@ So it creates global and cue functions that do not require values, each as Scrip
 ## generate_fixtures
 
 This was a one-off program that generates large sets of fixtures.  It's mostly deprecated and here as a framework if needed again.
+
