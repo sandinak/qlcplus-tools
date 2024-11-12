@@ -446,12 +446,21 @@ class QLC():
                 if fixture_definition == None or 'Pixels' in fixture_definition.type:
                     continue
                 fixture_mode = fixture_definition.modes.find_by_name(fixture.mode)
-                if fixture_mode.heads.count:
+                if not fixture_mode:
+                    logger.info(f"  SkIP: no fixture mode for {fixture.name}")
+                    continue
+
+                if not fixture_mode.heads:
+                    logger.info(f"  SkIP: no heads for {fixture.name} {fixture_mode.name}")
+                    continue
+                    
+                if fixture_mode.heads.count and 'mode channels' in dir(fixture_mode.heads.find_by_id(head.id)):
                     # if we have more than one head .. find the channels for that head
                     mode_channels = fixture_mode.heads.find_by_id(head.id).mode_channels
                 else:
                     # if not use all the channels for the 
                     mode_channels = fixture_mode.mode_channels
+                
 
                 fval = []
                 if any('Red' in s for s in mode_channels.names):
@@ -535,7 +544,9 @@ class QLC():
             if fixture_definition == None or 'Pixels' in fixture_definition.type:
                 continue
             mode = fixture_definition.modes.find_by_name(fixture.mode)
-            if mode.heads.count:
+            if 'heads' not in dir(mode):
+                continue
+            if mode.heads.count and 'mode channels' in dir(mode.heads.find_by_id(head.id)):
                 mode_channels = mode.heads.find_by_id(head.id).mode_channels
             else:
                 mode_channels = fixture_definition.modes.find_by_name(fixture.mode).mode_channels
@@ -1155,20 +1166,23 @@ class FixtureDefinitions(QLC):
             elif entry.name.startswith('.'):
                 continue
             elif '.qxf' in entry.name:
-                fd = FixtureDefinition(entry)
-                if manufacturer := fd.manufacturer:
-                    model = fd.model
-                else:
+                try: 
+                    fd = FixtureDefinition(entry)
+                    if manufacturer := fd.manufacturer:
+                        model = fd.model
+                    else:
+                        continue
+                    # list by manufacturer and model
+                    if not manufacturer in self.items:
+                        self.items[manufacturer] = {}
+                    self.items[manufacturer][model] = fd
+                    # list by model
+                    if not model in self.fd_by_model:
+                        self.fd_by_model[model] = []
+                    self.fd_by_model[model].append(fd)
+                except Exception as e:
+                    logger.error(f'Error loading {entry.name}: {e}')
                     continue
-                # list by manufacturer and model
-                if not manufacturer in self.items:
-                    self.items[manufacturer] = {}
-                self.items[manufacturer][model] = fd
-                # list by model
-                if not model in self.fd_by_model:
-                    self.fd_by_model[model] = []
-                self.fd_by_model[model].append(fd)
-
 
     def find_by_manufacturer_model(self, manufacturer, model):
         if ( manufacturer in self.items and model in self.items[manufacturer] ):
@@ -1204,6 +1218,8 @@ class FixtureDefinition(FixtureDefinitions):
         self.manufacturer = self.root.find('{%s}Manufacturer' % FixtureDefinition.xmlns).text
         self.model = self.root.find('{%s}Model' % FixtureDefinition.xmlns).text
         self.type = self.root.find('{%s}Type' % FixtureDefinition.xmlns).text
+
+        logger.info(f'loading {self.manufacturer} {self.model}')
 
         self.channels = Channels(self.root)
         self.modes = Modes(self.root, self.channels)
@@ -1290,9 +1306,12 @@ class Modes(Channel):
     def __init__(self, root, channels):
         self.items = []
         for item in root.findall('{%s}Mode' % FixtureDefinition.xmlns):
-            self.items.append(Mode(item, channels))
-
+            try: 
+                self.items.append(Mode(item, channels))
+            except Exception as e:
+                raise Exception(f'Error loading Mode {item.get("Name")}: {e}')
         self.names = list(map(lambda x: x.name, self.items))
+        
 
     def find_by_name(self, name):
         for i in self.items:
@@ -1318,11 +1337,15 @@ class ModeChannels(Mode):
         self.root = root
         self.items = []
         self.channels = []
-        for item in root.findall('{%s}Channel' % FixtureDefinition.xmlns):
-            mc = ModeChannel(item, channels)
-            self.items.append(mc)
-            self.channels.append(mc.channel)
-        self.names = list(map(lambda x: x.name, self.items))
+        try: 
+            for item in root.findall('{%s}Channel' % FixtureDefinition.xmlns):
+                mc = ModeChannel(item, channels)
+                self.items.append(mc)
+                self.channels.append(mc.channel)
+            self.names = list(map(lambda x: x.name, self.items))
+        except Exception as e:
+            print('foo')
+            raise Exception(f'Error loading {self.name}: {e}')
         
     def find_by_name(self, name):
         for i in self.items:
@@ -1359,7 +1382,8 @@ class ModeHeads(Mode):
             self.items.append(mh)
 
     def find_by_id(self, id):
-        return self.items[int(id)]
+        if int(id) < len(self.items):
+            return self.items[int(id)]
     
 class ModeHead(Mode):
     def __init__(self, root, mode_channels, count):
@@ -1379,6 +1403,8 @@ class ModeHeadChannel(ModeHeadChannels):
     def __init__(self, root, mode_channels):
         self.root = root
         self.number = self.root.text
-        self.mode_channel = mode_channels.find_by_number(self.number)
+        self.mode_channel = mode_channels.find_by_number(self.number)    
+        if not self.mode_channel:
+            raise Exception(f'No mode channel found for Head Channel {self.number}')
         self.channel = self.mode_channel.channel
     

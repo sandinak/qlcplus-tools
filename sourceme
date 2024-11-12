@@ -1,5 +1,5 @@
 
-# source to setup shell
+# source to setup shell and environment
 
 export GIT_NAME=$(basename ${PWD})
 echo "activating $GIT_NAME"
@@ -11,7 +11,7 @@ echo "activating $GIT_NAME"
 COLOR_PROMPT=${GIT_NAME}
 
 # extend path
-export PATH="${PATH}:${PWD}/bin"
+export PATH="${PWD}/bin:${PATH}"
 
 # add local dir for libs
 export PYTHONPATH="${PATH}/lib:${PYTHONPATH}"
